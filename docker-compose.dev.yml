@@ -1,0 +1,43 @@
+# ============================================================
+# Extractify – Development Overrides
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# ============================================================
+# Mounts source code for hot-reload and runs dev servers instead
+# of production builds.
+
+services:
+  # ── MongoDB ──────────────────────────────────────
+  # Expose default port for local DB GUIs (Compass, mongosh, etc.)
+  mongo:
+    ports:
+      - "27017:27017"
+
+  # ── FastAPI Backend ──────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    # Mount source so file changes trigger uvicorn --reload
+    volumes:
+      - ./backend:/app
+    # Override CMD to enable auto-reload on code changes
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    environment:
+      APP_ENV: development
+      DEBUG: "true"
+
+  # ── Next.js Frontend ─────────────────────────────
+  frontend:
+    # Skip the production Dockerfile; use a simple dev container instead
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      # Prevent host node_modules from overwriting the container's
+      - /app/node_modules
+      - /app/.next
+    # Override to run the Next.js dev server with hot-reload
+    command: ["npm", "run", "dev"]
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
