@@ -1,18 +1,15 @@
 import type { Metadata } from "next";
-import { Inter, Raleway } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Providers from "@/components/Providers";
+import AdblockWall from "@/components/AdblockWall";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const raleway = Raleway({
-  variable: "--font-raleway",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -28,11 +25,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${raleway.variable} antialiased`}>
+      <body className={`${inter.variable} antialiased`}>
         <Providers>
-          <Navbar />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
+          <AdblockWall>
+            <Navbar />
+            <main className="min-h-screen">{children}</main>
+            <Footer />
+          </AdblockWall>
         </Providers>
       </body>
     </html>

@@ -7,6 +7,7 @@ interface UrlInputProps {
   onSubmit: (url: string) => void;
   isLoading?: boolean;
   initialValue?: string;
+  elapsedSeconds?: number;
 }
 
 /**
@@ -34,7 +35,7 @@ function normalizeUrl(raw: string): string {
   return cleaned;
 }
 
-export default function UrlInput({ onSubmit, isLoading = false, initialValue = "" }: UrlInputProps) {
+export default function UrlInput({ onSubmit, isLoading = false, initialValue = "", elapsedSeconds }: UrlInputProps) {
   const [url, setUrl] = useState(initialValue);
   const { t } = useTranslation();
 
@@ -59,17 +60,17 @@ export default function UrlInput({ onSubmit, isLoading = false, initialValue = "
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         placeholder={t("input.placeholder")}
-        className="flex-1 h-[52px] rounded-full border border-border bg-card px-4 text-base font-medium text-foreground placeholder:text-muted outline-none focus:border-primary transition-colors"
+        className="flex-1 h-[52px] rounded-[40px] border border-border bg-card px-4 text-[16px] font-medium text-foreground placeholder:text-muted outline-none focus:border-primary transition-colors"
       />
       <button
         type="submit"
         disabled={isLoading || !url.trim()}
-        className="flex items-center justify-center rounded-full bg-primary px-6 h-[52px] text-white text-base font-medium hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed shrink-0"
+        className="flex items-center justify-center rounded-[33px] bg-primary px-4 h-[52px] text-white text-[16px] font-medium hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed shrink-0 gap-1"
       >
         {isLoading ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <svg
-              className="h-5 w-5 animate-spin text-white"
+              className="h-6 w-6 animate-spin text-white"
               viewBox="0 0 24 24"
               fill="none"
             >
@@ -88,6 +89,9 @@ export default function UrlInput({ onSubmit, isLoading = false, initialValue = "
               />
             </svg>
             <span>{t("input.processing")}</span>
+            {elapsedSeconds !== undefined && (
+              <span>{elapsedSeconds}s</span>
+            )}
           </div>
         ) : (
           t("input.download")

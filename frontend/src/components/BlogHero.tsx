@@ -42,7 +42,7 @@ export default function BlogHero({
 
           {/* Title and meta */}
           <div className="flex flex-col gap-2.5 text-white">
-            <h1 className="text-[27px] font-bold leading-normal max-w-[656px]">
+            <h1 className="text-[27px] font-semibold leading-normal max-w-[656px]">
               {title}
             </h1>
             <div className="flex items-center text-sm">

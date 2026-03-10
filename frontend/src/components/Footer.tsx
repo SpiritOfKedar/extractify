@@ -34,7 +34,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row gap-12 md:gap-8 justify-between">
           {/* Brand */}
           <div className="max-w-[280px]">
-            <h3 className="text-[20px] font-bold text-white mb-3">
+            <h3 className="text-[20px] font-semibold text-white mb-3">
               Extractify
             </h3>
             <p className="text-[14px] leading-[24px] text-gray-400">

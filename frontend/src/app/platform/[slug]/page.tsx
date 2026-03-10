@@ -6,6 +6,8 @@ import { notFound } from "next/navigation";
 import UrlInput from "@/components/UrlInput";
 import ContentTabs from "@/components/ContentTabs";
 import ContentPreview from "@/components/ContentPreview";
+import CloudflareCheck from "@/components/CloudflareCheck";
+import DownloadProgress from "@/components/DownloadProgress";
 import { platformConfigs } from "@/lib/platforms";
 import { detectContentTab } from "@/lib/url-tab-detect";
 import Hls from "hls.js";
@@ -75,6 +77,11 @@ const PLAYABLE_AUDIO_FORMATS = new Set(["mp3", "ogg", "opus", "wav", "m4a", "aac
 const IMAGE_FORMATS = new Set(["jpg", "jpeg", "png", "webp", "gif", "bmp", "svg"]);
 const DOCUMENT_CONTENT_TYPES = new Set(["pdf", "document", "presentation"]);
 
+/** Platforms that should show the Cloudflare bot verification before extraction */
+const DOCUMENT_PLATFORMS = new Set([
+  "scribd", "slideshare", "issuu", "calameo", "yumpu", "slideserve",
+]);
+
 function isHlsUrl(url?: string): boolean {
   if (!url) return false;
   const lower = url.toLowerCase();
@@ -143,6 +150,9 @@ export default function PlatformPage({ params }: PlatformPageProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [downloadResult, setDownloadResult] = useState<ExtractedContent | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
+  const [botVerified, setBotVerified] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null);
   const hasTriggeredRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -155,6 +165,12 @@ export default function PlatformPage({ params }: PlatformPageProps) {
     const effectiveTab = autoTab || activeTab;
     if (autoTab) {
       setActiveTab(autoTab);
+    }
+
+    // For document platforms, require bot verification first
+    if (DOCUMENT_PLATFORMS.has(slug) && !botVerified) {
+      setPendingUrl(url);
+      return;
     }
 
     setIsLoading(true);
@@ -212,7 +228,7 @@ export default function PlatformPage({ params }: PlatformPageProps) {
       setErrorMessage(error instanceof Error ? error.message : "Something went wrong");
       setIsLoading(false);
     }
-  }, [slug, activeTab]);
+  }, [slug, activeTab, botVerified]);
 
   // If URL came from the homepage, auto-trigger (once)
   useEffect(() => {
@@ -221,6 +237,29 @@ export default function PlatformPage({ params }: PlatformPageProps) {
       void handleUrlSubmit(initialUrl);
     }
   }, [initialUrl, handleUrlSubmit]);
+
+  // Auto-submit pending URL after bot verification
+  useEffect(() => {
+    if (botVerified && pendingUrl) {
+      const url = pendingUrl;
+      setPendingUrl(null);
+      void handleUrlSubmit(url);
+    }
+  }, [botVerified, pendingUrl, handleUrlSubmit]);
+
+  // Elapsed seconds timer while loading
+  useEffect(() => {
+    if (!isLoading) {
+      setElapsedSeconds(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setElapsedSeconds((s) => s + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
+  const isDocumentPlatform = DOCUMENT_PLATFORMS.has(slug);
 
   const isVideoContentType = VIDEO_CONTENT_TYPES.has((downloadResult?.content_type || "").toLowerCase());
   const isAudioContentType = AUDIO_CONTENT_TYPES.has((downloadResult?.content_type || "").toLowerCase());
@@ -337,20 +376,20 @@ export default function PlatformPage({ params }: PlatformPageProps) {
   return (
     <div className="flex flex-col items-center px-4 pt-16 pb-24">
       {/* Header with platform icon */}
-      <div className="flex flex-col items-center gap-3 max-w-[855px] mb-6">
+      <div className="flex flex-col items-center gap-3 max-w-[855px] mb-10 w-full">
         <div className="flex items-center gap-3">
           <span className="shrink-0">{platform.icon}</span>
-          <h1 className="text-[28px] md:text-[32px] font-semibold text-foreground text-center leading-tight">
+          <h1 className="text-[32px] font-semibold text-foreground text-center leading-normal">
             {platform.title}
           </h1>
         </div>
-        <p className="text-text-secondary text-lg md:text-xl font-medium text-center max-w-[431px] leading-7">
+        <p className="text-text-secondary text-[20px] font-medium text-center max-w-[431px] leading-[28px]">
           {platform.description}
         </p>
       </div>
 
       {/* Content type tabs */}
-      <div className="mb-6">
+      <div className="mb-10">
         <ContentTabs
           tabs={platform.tabs}
           activeTab={activeTab}
@@ -359,9 +398,19 @@ export default function PlatformPage({ params }: PlatformPageProps) {
       </div>
 
       {/* URL Input */}
-      <div className="mb-6">
-        <UrlInput onSubmit={handleUrlSubmit} isLoading={isLoading} initialValue={initialUrl} />
+      <div className="mb-5 w-full flex justify-center">
+        <UrlInput onSubmit={handleUrlSubmit} isLoading={isLoading} initialValue={initialUrl} elapsedSeconds={isLoading ? elapsedSeconds : undefined} />
       </div>
+
+      {/* Cloudflare bot verification - shown for document platforms */}
+      {isDocumentPlatform && (pendingUrl || !botVerified) && !downloadResult && (
+        <div className="mb-5">
+          <CloudflareCheck
+            onVerified={() => setBotVerified(true)}
+            verified={botVerified}
+          />
+        </div>
+      )}
 
       {/* Content Preview / Result */}
       {downloadResult ? (
@@ -442,14 +491,14 @@ export default function PlatformPage({ params }: PlatformPageProps) {
 
           {/* Details sidebar */}
           <div className="lg:w-[478px] flex flex-col gap-4">
-            <h2 className="text-xl font-semibold text-foreground">
+            <h2 className="text-[20px] font-semibold text-foreground leading-7">
               {downloadResult.title || "Extracted Content"}
             </h2>
-            <p className="text-text-secondary text-base leading-7">
+            <p className="text-[16px] font-medium text-text-muted leading-7">
               {downloadResult.description || "No description available."}
             </p>
 
-            {downloadResult.variants?.length > 0 && (
+            {downloadResult.variants?.length > 1 && (
               <select
                 className="h-11 rounded-lg border border-border bg-card px-3 text-sm text-foreground"
                 value={selectedVariant?.download_url || ""}
@@ -468,14 +517,14 @@ export default function PlatformPage({ params }: PlatformPageProps) {
               </select>
             )}
 
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
               {fileSizeText && (
-                <p className="text-text-secondary text-sm">
+                <p className="text-[14px] font-medium text-text-muted">
                   File size : {fileSizeText}
                 </p>
               )}
               {(selectedVariant?.format || downloadResult.content_type) && (
-                <p className="text-text-secondary text-sm">
+                <p className="text-[14px] font-medium text-text-muted">
                   File type : {selectedVariant?.format || downloadResult.content_type}
                 </p>
               )}
@@ -487,7 +536,7 @@ export default function PlatformPage({ params }: PlatformPageProps) {
                   : "#"
               }
               download
-              className={`w-full rounded-full py-3 text-white text-base font-medium transition-opacity text-center ${
+              className={`flex items-center justify-center w-full h-[40px] rounded-[33px] text-white text-[16px] font-medium transition-opacity ${
                 hasSelectedDownload ? "bg-primary hover:opacity-90" : "bg-primary/50 pointer-events-none"
               }`}
             >
@@ -495,9 +544,14 @@ export default function PlatformPage({ params }: PlatformPageProps) {
             </a>
           </div>
         </div>
-      ) : (
-        <ContentPreview isEmpty={!isLoading}>
-          {isLoading && (
+      ) : isLoading ? (
+        <div className="w-full max-w-[680px] flex flex-col gap-5">
+          <DownloadProgress
+            elapsedSeconds={elapsedSeconds}
+            downloadedBytes={undefined}
+            totalBytes={undefined}
+          />
+          <ContentPreview isEmpty={false}>
             <div className="flex flex-col items-center gap-4">
               <svg
                 className="h-10 w-10 animate-spin text-primary"
@@ -522,8 +576,10 @@ export default function PlatformPage({ params }: PlatformPageProps) {
                 Processing your request...
               </p>
             </div>
-          )}
-        </ContentPreview>
+          </ContentPreview>
+        </div>
+      ) : (
+        <ContentPreview isEmpty />
       )}
 
       {errorMessage && (

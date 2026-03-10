@@ -35,7 +35,7 @@ export default function PlatformOverview() {
               key={s.label}
               className="bg-[#ece8f5] rounded-[12px] p-5 w-[176px] md:w-[184px] h-[123px] flex flex-col items-start justify-center"
             >
-              <span className="text-[40px] font-bold text-[#2d2d2d] leading-tight">
+              <span className="text-[40px] font-semibold text-[#2d2d2d] leading-tight">
                 {s.value}
               </span>
               <span className="text-[16px] text-black mt-2">{s.label}</span>

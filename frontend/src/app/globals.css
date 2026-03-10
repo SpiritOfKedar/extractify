@@ -7,8 +7,15 @@
   --color-primary-light: #fbf8ff;
   --color-card: #ffffff;
   --color-border: #e8e8e8;
+  --color-border-light: #e2e2e2;
   --color-muted: #aaaaaa;
   --color-text-secondary: #404040;
+  --color-text-muted: #606060;
+  --color-text-hint: #757575;
+  --color-tab-inactive: #505050;
+  --color-tab-bg: #fbfbfb;
+  --color-green: #44ad57;
+  --color-progress-track: #e9ecf1;
   --font-sans: var(--font-inter);
 }
 
@@ -16,4 +23,18 @@ body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Adblock wall shake animation */
+@keyframes adwall-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-6px); }
+  30% { transform: translateX(6px); }
+  45% { transform: translateX(-4px); }
+  60% { transform: translateX(4px); }
+  75% { transform: translateX(-2px); }
+  90% { transform: translateX(2px); }
+}
+.animate-shake {
+  animation: adwall-shake 0.5s ease-in-out;
 }

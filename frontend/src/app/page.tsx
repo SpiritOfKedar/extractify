@@ -84,17 +84,17 @@ export default function Home() {
     <div className="flex flex-col items-center">
       {/* Hero section */}
       <div className="flex flex-col items-center px-4 md:px-8 pt-16 md:pt-20 pb-20 md:pb-24">
-        <div className="flex flex-col items-center gap-3 max-w-[855px] mb-10">
-          <h1 className="text-[28px] md:text-[32px] font-semibold text-foreground text-center leading-tight">
+        <div className="flex flex-col items-center gap-3 max-w-[855px] mb-10 w-full">
+          <h1 className="text-[32px] font-semibold text-[#2D2D2D] text-center leading-normal w-full">
             {t("hero.title")}
           </h1>
-          <p className="text-text-secondary text-lg md:text-xl font-medium text-center max-w-[431px] leading-7">
+          <p className="text-text-secondary text-[20px] font-medium text-center max-w-[431px] leading-[28px]">
             {t("hero.subtitle")}
           </p>
         </div>
 
         {/* URL Input */}
-        <div className="mb-6">
+        <div className="w-full max-w-[696px] mb-6">
           <UrlInput onSubmit={handleUrlSubmit} isLoading={isLoading} />
         </div>
 

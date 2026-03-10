@@ -17,10 +17,10 @@ export default function ContentTabs({
         <button
           key={tab}
           onClick={() => onTabChange(tab)}
-          className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+          className={`rounded-[33px] px-4 py-2 text-[14px] font-medium transition-colors ${
             activeTab === tab
-              ? "border-primary text-primary bg-card"
-              : "border-border text-foreground bg-card hover:border-primary hover:text-primary"
+              ? "border-2 border-primary text-primary bg-tab-bg"
+              : "border border-border-light text-tab-inactive bg-tab-bg hover:border-primary hover:text-primary"
           }`}
         >
           {tab}

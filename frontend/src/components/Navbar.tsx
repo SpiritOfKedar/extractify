@@ -37,7 +37,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full bg-primary-light shadow-[0px_1px_6px_0px_rgba(170,170,170,0.25)]">
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-4 md:px-16 py-5">
         {/* Logo */}
-        <Link href="/" className="text-primary font-bold text-[32px] leading-none">
+        <Link href="/" className="text-primary font-semibold text-[32px] leading-none">
           Logo
         </Link>
 
@@ -45,19 +45,19 @@ export default function Navbar() {
         <nav className="flex items-center gap-4">
           <Link
             href="/blogs"
-            className="hidden md:flex items-center justify-center rounded-full py-2 text-foreground text-base font-medium hover:text-primary transition-colors"
+            className="hidden md:flex items-center justify-center rounded-[33px] py-2 text-foreground text-[16px] font-medium hover:text-primary transition-colors"
           >
             {t("nav.blogs")}
           </Link>
           <Link
             href="/#faq"
-            className="hidden md:flex items-center justify-center rounded-full py-2 text-foreground text-base font-medium hover:text-primary transition-colors"
+            className="hidden md:flex items-center justify-center rounded-[33px] py-2 text-foreground text-[16px] font-medium hover:text-primary transition-colors"
           >
             {t("nav.faq")}
           </Link>
           <Link
             href="/#reviews"
-            className="hidden md:flex items-center justify-center rounded-full py-2 text-foreground text-base font-medium hover:text-primary transition-colors"
+            className="hidden md:flex items-center justify-center rounded-[33px] py-2 text-foreground text-[16px] font-medium hover:text-primary transition-colors"
           >
             {t("nav.review")}
           </Link>
@@ -67,7 +67,7 @@ export default function Navbar() {
             <div className="relative" ref={langRef}>
               <button
                 onClick={() => setLangOpen(!langOpen)}
-                className="flex items-center justify-center gap-2 rounded-full border border-border bg-card px-2.5 py-2 sm:px-3"
+                className="flex items-center justify-center gap-2 rounded-[33px] border border-border-light bg-card px-2.5 py-2 sm:px-3"
               >
                 <span className="text-lg">{localeConfig[locale].flag}</span>
                 <span className="text-foreground text-base sm:text-lg font-semibold">{localeConfig[locale].label}</span>
@@ -97,7 +97,7 @@ export default function Navbar() {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setPlatformsOpen(!platformsOpen)}
-                className="flex items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-foreground text-base font-medium hover:border-primary transition-colors"
+                className="flex items-center gap-1 rounded-[33px] border border-border-light bg-card px-4 py-2 text-foreground text-[16px] font-medium hover:border-primary transition-colors"
               >
                 {t("nav.platforms")}
                 <ChevronDown
