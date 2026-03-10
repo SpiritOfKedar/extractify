@@ -1,0 +1,68 @@
+# ============================================================
+# Render Blueprint – deploy the Extractify backend
+# https://render.com/docs/blueprint-spec
+#
+# Usage:
+#   1. Push this repo to GitHub / GitLab.
+#   2. In Render dashboard → New → Blueprint → select this repo.
+#   3. Render reads this file and creates the service.
+#   4. Fill in the env-var values in the Render dashboard.
+# ============================================================
+
+services:
+  - type: web
+    name: extractify-backend
+    runtime: docker
+    # Path to the Dockerfile relative to repo root
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: standard          # Playwright + Chromium needs ≥ 2 GB RAM
+    healthCheckPath: /health
+    envVars:
+      # ── App ────────────────────────────────────
+      - key: APP_ENV
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: CORS_ORIGINS
+        sync: false         # set in dashboard, e.g. https://extractify.com
+
+      # ── MongoDB Atlas ──────────────────────────
+      - key: MONGO_URI
+        sync: false         # paste your Atlas connection string
+      - key: MONGO_DB_NAME
+        value: extractify
+
+      # ── Instagram ──────────────────────────────
+      - key: INSTAGRAM_SESSION_ID
+        sync: false
+      - key: INSTAGRAM_CSRF_TOKEN
+        sync: false
+      - key: INSTAGRAM_DS_USER_ID
+        sync: false
+
+      # ── Facebook ───────────────────────────────
+      - key: FACEBOOK_C_USER
+        sync: false
+      - key: FACEBOOK_XS
+        sync: false
+
+      # ── Twitter / X ────────────────────────────
+      - key: TWITTER_AUTH_TOKEN
+        sync: false
+      - key: TWITTER_CSRF_TOKEN
+        sync: false
+      - key: TWITTER_BEARER_TOKEN
+        sync: false
+
+      # ── Threads ────────────────────────────────
+      - key: THREADS_POST_DOC_ID
+        value: "26399684949649381"
+      - key: THREADS_USER_DOC_ID
+        value: "23904112853711550"
+      - key: THREADS_APP_ID
+        value: "238260118697367"
+
+      # ── Tumblr ─────────────────────────────────
+      - key: TUMBLR_API_KEYS
+        sync: false
