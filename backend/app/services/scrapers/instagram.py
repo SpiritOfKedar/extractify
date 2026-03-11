@@ -37,6 +37,7 @@ _DESKTOP_UA = (
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/120.0.0.0 Safari/537.36"
 )
+_SQUARE_SIZE_RE = re.compile(r'/s(\d+)x(\d+)/')
 
 
 
@@ -115,15 +116,41 @@ def _get_ig_cookies_file() -> Optional[str]:
     return None
 
 
-def _is_profile_pic(url: str, width: int = 0, height: int = 0) -> bool:
+def _is_profile_pic(url: str, width: int = 0, height: int = 0, *, story_context: bool = False) -> bool:
     """Return True if the URL looks like a profile picture rather than story media."""
     low = url.lower()
-    if any(s in low for s in ("profile_pic", "/s150x150/", "/s44x44/", "/s110x110/", "/s320x320/")):
+    if "profile_pic" in low:
+        return True
+    # Square-crop size indicator in CDN path (e.g. /s150x150/, /s640x640/, /s1080x1080/)
+    m = _SQUARE_SIZE_RE.search(low)
+    if m and m.group(1) == m.group(2):
+        return True
+    # Instagram CDN path segment for profile pictures
+    if "/t51.2885-19/" in low:
         return True
     # Very small images are almost certainly avatars / thumbnails
     if width and height and max(width, height) < 400:
         return True
+    # In story context, approximately-square images are profile pictures
+    # (stories are always portrait 9:16; legitimate story images have height >> width)
+    if story_context and width and height:
+        ratio = width / height
+        if 0.8 <= ratio <= 1.25:
+            return True
     return False
+
+
+def _cdn_filename(url: str) -> str:
+    """Extract the filename from an Instagram CDN URL for comparison."""
+    if not url:
+        return ""
+    return url.split("?")[0].rstrip("/").rsplit("/", 1)[-1]
+
+
+def _user_pp_filename(item: dict) -> str:
+    """Extract profile pic CDN filename from a story item's user data."""
+    pp_url = item.get("user", {}).get("profile_pic_url", "")
+    return _cdn_filename(pp_url)
 
 
 class InstagramScraper(BaseScraper):
@@ -354,9 +381,11 @@ class InstagramScraper(BaseScraper):
                     continue
 
                 item = items[0]
+                pp_name = _user_pp_filename(item)
 
                 # If this story reshares another post, prefer the inner media
                 inner = self._extract_inner_story_media(item)
+                is_direct = inner is None
                 if inner:
                     item = inner
 
@@ -364,7 +393,7 @@ class InstagramScraper(BaseScraper):
                 thumbnail = None
 
                 for vid in item.get("video_versions", []):
-                    if vid.get("url") and not _is_profile_pic(vid["url"]):
+                    if vid.get("url") and not _is_profile_pic(vid["url"], story_context=is_direct):
                         h = vid.get("height", 0)
                         variants.append(ScrapedVariant(
                             label=f"Video {h}p" if h else "Video",
@@ -376,7 +405,9 @@ class InstagramScraper(BaseScraper):
                     c_url = c.get("url", "")
                     c_w = c.get("width", 0)
                     c_h = c.get("height", 0)
-                    if not c_url or _is_profile_pic(c_url, c_w, c_h):
+                    if not c_url or _is_profile_pic(c_url, c_w, c_h, story_context=is_direct):
+                        continue
+                    if pp_name and _cdn_filename(c_url) == pp_name:
                         continue
                     if not thumbnail:
                         thumbnail = c_url
@@ -610,6 +641,13 @@ class InstagramScraper(BaseScraper):
                 if media.get("image_versions2") or media.get("video_versions"):
                     return media
 
+        # clip – resharing a Reel/clip as a story
+        clip = item.get("clip")
+        if isinstance(clip, dict):
+            media = clip.get("clip") or clip
+            if media.get("image_versions2") or media.get("video_versions"):
+                return media
+
         return None
 
     @staticmethod
@@ -631,9 +669,12 @@ class InstagramScraper(BaseScraper):
         thumbnail = None
 
         for item in items:
+            pp_name = _user_pp_filename(item)
+
             # If the story reshares/mentions another post, prefer its media
             inner = InstagramScraper._extract_inner_story_media(item)
             effective = inner or item
+            is_direct_story = inner is None
 
             media_type = effective.get("media_type") or item.get("media_type")
 
@@ -641,7 +682,7 @@ class InstagramScraper(BaseScraper):
             # often have media_type=1 but still carry video_versions
             vids = effective.get("video_versions", [])
             if vids:
-                usable = [v for v in vids if v.get("url") and not _is_profile_pic(v["url"])]
+                usable = [v for v in vids if v.get("url") and not _is_profile_pic(v["url"], story_context=is_direct_story)]
                 if usable:
                     best = max(usable, key=lambda v: v.get("width", 0) * v.get("height", 0))
                     variants.append(ScrapedVariant(
@@ -653,9 +694,11 @@ class InstagramScraper(BaseScraper):
             # Filter out profile pictures and tiny images
             good_imgs = [
                 c for c in candidates
-                if c.get("url") and not _is_profile_pic(
-                    c["url"], c.get("width", 0), c.get("height", 0)
+                if c.get("url")
+                and not _is_profile_pic(
+                    c["url"], c.get("width", 0), c.get("height", 0), story_context=is_direct_story
                 )
+                and not (pp_name and _cdn_filename(c["url"]) == pp_name)
             ]
             if good_imgs:
                 best_img = max(good_imgs, key=lambda c: c.get("width", 0) * c.get("height", 0))
@@ -717,8 +760,14 @@ class InstagramScraper(BaseScraper):
             html, re.IGNORECASE,
         ):
             clean = unescape(raw.replace("\\u0026", "&").replace("\\/", "/"))
-            if any(s in clean for s in ("150x150", "44x44", "110x110", "320x320", "profile_pic", "s150x", "s44x", "s110x")):
+            if any(s in clean for s in (
+                "profile_pic", "t51.2885-19",
+            )):
                 continue
+            if _SQUARE_SIZE_RE.search(clean):
+                m = _SQUARE_SIZE_RE.search(clean)
+                if m and m.group(1) == m.group(2):
+                    continue
             if clean not in seen:
                 seen.add(clean)
                 if not thumbnail:
