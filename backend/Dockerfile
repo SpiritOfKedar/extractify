@@ -38,16 +38,16 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     rm -rf /var/lib/apt/lists/*
 
 # Build bgutil PO Token server (YouTube anti-bot bypass)
-# 1. Clone the provider repo + build the Node.js server
-# 2. Install the yt-dlp plugin via pip
 RUN git clone --single-branch --branch 1.3.1 \
       https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /opt/bgutil && \
     cd /opt/bgutil/server && npm ci && npx tsc && \
-    pip install --no-cache-dir bgutil-ytdlp-pot-provider && \
     chmod -R o+rx /opt/bgutil
 
 # Copy pre-built Python packages from builder stage
 COPY --from=builder /install /usr/local
+
+# Install bgutil yt-dlp plugin AFTER builder copy (so it doesn't get overwritten)
+RUN pip install --no-cache-dir bgutil-ytdlp-pot-provider
 
 # Install Playwright Chromium to a shared path accessible by the non-root user.
 # We skip `playwright install-deps` because it references obsolete font packages on Debian Trixie.
@@ -65,5 +65,5 @@ USER appuser
 
 EXPOSE 8000
 
-# Use shell form so $PORT (injected by Render / Railway / etc.) is expanded at runtime.
-CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+# Start bgutil PO Token server + FastAPI via start.sh
+CMD ["bash", "start.sh"]
