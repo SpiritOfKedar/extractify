@@ -32,6 +32,7 @@ from PIL import Image
 
 from app.services.scrapers.base import BaseScraper, ScrapedResult, ScrapedVariant
 from app.services.scrapers.helpers import find_og_tag
+from app.utils.http_client import get_http_client
 
 logger = structlog.get_logger()
 
@@ -322,18 +323,18 @@ class SlideShareScraper(BaseScraper):
     async def _fetch_html(self, url: str) -> str:
         """Fetch SlideShare page HTML with httpx."""
         try:
-            async with httpx.AsyncClient(
-                follow_redirects=True, timeout=20,
+            client = get_http_client()
+            resp = await client.get(
+                url,
                 headers={
                     "User-Agent": _UA,
                     "Accept": "text/html,application/xhtml+xml",
                     "Accept-Language": "en-US,en;q=0.9",
                 },
-            ) as client:
-                resp = await client.get(url)
-                # SlideShare returns 404 status for some pages but still
-                # serves the full Next.js HTML with __NEXT_DATA__
-                return resp.text
+            )
+            # SlideShare returns 404 status for some pages but still
+            # serves the full Next.js HTML with __NEXT_DATA__
+            return resp.text
         except Exception as e:
             logger.error("slideshare_html_fail", error=str(e)[:120])
             return ""

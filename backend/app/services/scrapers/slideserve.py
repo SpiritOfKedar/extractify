@@ -35,6 +35,7 @@ from PIL import Image
 
 from app.services.scrapers.base import BaseScraper, ScrapedResult, ScrapedVariant
 from app.services.scrapers.helpers import find_og_tag
+from app.utils.http_client import get_http_client
 
 logger = structlog.get_logger()
 
@@ -155,15 +156,12 @@ class SlideServeScraper(BaseScraper):
 
         data_url = m.group(1)
         try:
-            async with httpx.AsyncClient(
-                follow_redirects=True, timeout=15,
-                headers={"User-Agent": _UA},
-            ) as client:
-                resp = await client.get(data_url)
-                if resp.status_code != 200:
-                    logger.warning("slideserve_data_js_http", status=resp.status_code)
-                    return None
-                js_text = resp.text
+            client = get_http_client()
+            resp = await client.get(data_url, headers={"User-Agent": _UA})
+            if resp.status_code != 200:
+                logger.warning("slideserve_data_js_http", status=resp.status_code)
+                return None
+            js_text = resp.text
         except Exception as e:
             logger.warning("slideserve_data_js_fetch_err", error=repr(e)[:120])
             return None
@@ -336,16 +334,16 @@ class SlideServeScraper(BaseScraper):
     async def _fetch_html(self, url: str) -> str:
         """Fetch SlideServe page HTML."""
         try:
-            async with httpx.AsyncClient(
-                follow_redirects=True, timeout=20,
+            client = get_http_client()
+            resp = await client.get(
+                url,
                 headers={
                     "User-Agent": _UA,
                     "Accept": "text/html,application/xhtml+xml",
                     "Accept-Language": "en-US,en;q=0.9",
                 },
-            ) as client:
-                resp = await client.get(url)
-                return resp.text
+            )
+            return resp.text
         except Exception as e:
             logger.error("slideserve_html_fail", error=repr(e)[:120])
             return ""

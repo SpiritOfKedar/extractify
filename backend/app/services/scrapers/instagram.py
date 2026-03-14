@@ -22,6 +22,7 @@ from app.services.scrapers.base import BaseScraper, ScrapedResult, ScrapedVarian
 from app.services.scrapers.helpers import build_ytdlp_variants, parse_og_tags
 from app.utils.ytdlp_helper import extract_with_ytdlp
 from app.utils.browser import get_page_content
+from app.utils.http_client import get_http_client
 
 logger = structlog.get_logger()
 
@@ -370,11 +371,11 @@ class InstagramScraper(BaseScraper):
             try:
                 headers = _get_ig_auth_headers(mobile=(host == "i.instagram.com"))
                 api_url = f"https://{host}/api/v1/media/{media_id}/info/"
-                async with httpx.AsyncClient(follow_redirects=True, timeout=15) as client:
-                    resp = await client.get(api_url, headers=headers, cookies=cookies)
-                    if resp.status_code != 200:
-                        continue
-                    data = resp.json()
+                client = get_http_client()
+                resp = await client.get(api_url, headers=headers, cookies=cookies)
+                if resp.status_code != 200:
+                    continue
+                data = resp.json()
 
                 items = data.get("items", [])
                 if not items:
@@ -449,17 +450,17 @@ class InstagramScraper(BaseScraper):
         ]
 
         data: dict = {}
-        async with httpx.AsyncClient(follow_redirects=True, timeout=15) as client:
-            for ep in endpoints:
-                try:
-                    resp = await client.get(ep, headers=headers, cookies=cookies)
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        if data.get("reel") or data.get("reels_media") or data.get("reels"):
-                            break
-                        data = {}
-                except Exception:
-                    pass
+        client = get_http_client()
+        for ep in endpoints:
+            try:
+                resp = await client.get(ep, headers=headers, cookies=cookies)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if data.get("reel") or data.get("reels_media") or data.get("reels"):
+                        break
+                    data = {}
+            except Exception:
+                pass
 
         if not data:
             return None
@@ -475,25 +476,26 @@ class InstagramScraper(BaseScraper):
 
         try:
             url = f"https://www.instagram.com/api/v1/users/web_profile_info/?username={username}"
-            async with httpx.AsyncClient(follow_redirects=True, timeout=15) as client:
-                resp = await client.get(url, headers=headers, cookies=cookies)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    user = data.get("data", {}).get("user") or data.get("user")
-                    if user:
-                        return str(user.get("id") or user.get("pk") or "")
+            client = get_http_client()
+            resp = await client.get(url, headers=headers, cookies=cookies)
+            if resp.status_code == 200:
+                data = resp.json()
+                user = data.get("data", {}).get("user") or data.get("user")
+                if user:
+                    return str(user.get("id") or user.get("pk") or "")
         except Exception:
             pass
 
         try:
-            async with httpx.AsyncClient(
-                follow_redirects=True, timeout=15,
+            client = get_http_client()
+            resp = await client.get(
+                f"https://www.instagram.com/{username}/",
                 headers={"User-Agent": _DESKTOP_UA},
-            ) as client:
-                resp = await client.get(f"https://www.instagram.com/{username}/", cookies=cookies)
-                m = re.search(r'"profilePage_(\d+)"', resp.text)
-                if m:
-                    return m.group(1)
+                cookies=cookies,
+            )
+            m = re.search(r'"profilePage_(\d+)"', resp.text)
+            if m:
+                return m.group(1)
         except Exception:
             pass
         return None
@@ -531,11 +533,11 @@ class InstagramScraper(BaseScraper):
         )
 
         try:
-            async with httpx.AsyncClient(follow_redirects=True, timeout=15) as client:
-                resp = await client.get(graphql_url, headers=headers, cookies=cookies)
-                if resp.status_code != 200:
-                    return None
-                data = resp.json()
+            client = get_http_client()
+            resp = await client.get(graphql_url, headers=headers, cookies=cookies)
+            if resp.status_code != 200:
+                return None
+            data = resp.json()
         except Exception:
             return None
 

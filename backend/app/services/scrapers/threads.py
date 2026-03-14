@@ -28,6 +28,7 @@ from app.services.scrapers.base import BaseScraper, ScrapedResult, ScrapedVarian
 from app.services.scrapers.helpers import build_ytdlp_variants, parse_og_tags
 from app.utils.ytdlp_helper import extract_with_ytdlp
 from app.utils.browser import get_page_content
+from app.utils.http_client import get_http_client
 
 logger = logging.getLogger(__name__)
 
@@ -418,10 +419,11 @@ class ThreadsScraper(BaseScraper):
             "dpr": "1",
         }
 
-        async with httpx.AsyncClient(
-            timeout=20, follow_redirects=True, cookies=httpx_cookies or None
-        ) as client:
-            resp = await client.post(_THREADS_API, headers=headers, data=data)
+        client = get_http_client()
+        resp = await client.post(
+            _THREADS_API, headers=headers, data=data,
+            cookies=httpx_cookies or None,
+        )
 
         if resp.status_code != 200:
             logger.warning("Threads API HTTP %s", resp.status_code)
@@ -455,13 +457,13 @@ class ThreadsScraper(BaseScraper):
         tokens: dict[str, str] = {}
         try:
             httpx_cookies = _get_httpx_cookies()
-            async with httpx.AsyncClient(
-                timeout=15, follow_redirects=True,
+            client = get_http_client()
+            resp = await client.get(
+                "https://www.threads.com/",
                 headers={"User-Agent": _DESKTOP_UA},
                 cookies=httpx_cookies or None,
-            ) as client:
-                resp = await client.get("https://www.threads.com/")
-                html = resp.text
+            )
+            html = resp.text
 
             # LSD token
             m = re.search(r'"LSD",\[\],\{"token":"([^"]+)"', html)

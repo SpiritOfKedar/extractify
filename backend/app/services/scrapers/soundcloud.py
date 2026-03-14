@@ -28,6 +28,7 @@ import structlog
 from app.services.scrapers.base import BaseScraper, ScrapedResult, ScrapedVariant
 from app.services.scrapers.helpers import find_og_tag
 from app.utils.ytdlp_helper import extract_with_ytdlp
+from app.utils.http_client import get_http_client
 
 logger = structlog.get_logger()
 
@@ -69,35 +70,33 @@ class SoundCloudScraper(BaseScraper):
             return _cached_client_id
 
         try:
-            async with httpx.AsyncClient(
-                timeout=15, follow_redirects=True, headers=_HEADERS,
-            ) as client:
-                resp = await client.get("https://soundcloud.com")
-                resp.raise_for_status()
+            client = get_http_client()
+            resp = await client.get("https://soundcloud.com", headers=_HEADERS)
+            resp.raise_for_status()
 
-                scripts = re.findall(
-                    r'src="(https://a-v2\.sndcdn\.com/assets/[^"]+\.js)"',
-                    resp.text,
-                )
+            scripts = re.findall(
+                r'src="(https://a-v2\.sndcdn\.com/assets/[^"]+\.js)"',
+                resp.text,
+            )
 
-                # Search bundles in reverse (app bundles with client_id are last)
-                for script_url in reversed(scripts):
-                    try:
-                        js_resp = await client.get(script_url)
-                        match = re.search(
-                            r'client_id\s*[:=]\s*"([a-zA-Z0-9]{32})"',
-                            js_resp.text,
+            # Search bundles in reverse (app bundles with client_id are last)
+            for script_url in reversed(scripts):
+                try:
+                    js_resp = await client.get(script_url, headers=_HEADERS)
+                    match = re.search(
+                        r'client_id\s*[:=]\s*"([a-zA-Z0-9]{32})"',
+                        js_resp.text,
+                    )
+                    if match:
+                        _cached_client_id = match.group(1)
+                        _client_id_fetched_at = time.time()
+                        logger.debug(
+                            "soundcloud_client_id_extracted",
+                            client_id=_cached_client_id[:8] + "...",
                         )
-                        if match:
-                            _cached_client_id = match.group(1)
-                            _client_id_fetched_at = time.time()
-                            logger.debug(
-                                "soundcloud_client_id_extracted",
-                                client_id=_cached_client_id[:8] + "...",
-                            )
-                            return _cached_client_id
-                    except Exception:
-                        continue
+                        return _cached_client_id
+                except Exception:
+                    continue
         except Exception as exc:
             logger.debug("soundcloud_client_id_failed", error=str(exc)[:200])
 
@@ -108,13 +107,11 @@ class SoundCloudScraper(BaseScraper):
     async def _api_resolve(self, url: str, client_id: str) -> Optional[dict]:
         """Resolve a SoundCloud URL via API v2."""
         api_url = f"{_SC_API_BASE}/resolve?url={quote(url, safe='')}&client_id={client_id}"
-        async with httpx.AsyncClient(
-            timeout=15, follow_redirects=True, headers=_HEADERS,
-        ) as client:
-            resp = await client.get(api_url)
-            if resp.status_code != 200:
-                return None
-            return resp.json()
+        client = get_http_client()
+        resp = await client.get(api_url, headers=_HEADERS)
+        if resp.status_code != 200:
+            return None
+        return resp.json()
 
     async def _api_get_stream_url(
         self, stream_api_url: str, client_id: str, track_auth: str = "",
@@ -128,10 +125,8 @@ class SoundCloudScraper(BaseScraper):
             if http:
                 resp = await http.get(url)
             else:
-                async with httpx.AsyncClient(
-                    timeout=10, follow_redirects=True, headers=_HEADERS,
-                ) as client:
-                    resp = await client.get(url)
+                client = get_http_client()
+                resp = await client.get(url, headers=_HEADERS)
             if resp.status_code == 200:
                 data = resp.json()
                 return data.get("url")
@@ -508,54 +503,51 @@ class SoundCloudScraper(BaseScraper):
         # Limit to first 50 tracks to avoid timeouts
         tracks = tracks[:50]
 
-        async with httpx.AsyncClient(
-            timeout=15, follow_redirects=True, headers=_HEADERS,
-            limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
-        ) as http:
-            for i, track in enumerate(tracks):
-                if not isinstance(track, dict):
-                    continue
+        http = get_http_client()
+        for i, track in enumerate(tracks):
+            if not isinstance(track, dict):
+                continue
 
-                # Some tracks in playlists only have basic info (id, no media).
-                # Fetch full track data if transcodings are missing.
-                if not track.get("media", {}).get("transcodings"):
-                    track_id = track.get("id")
-                    if track_id:
-                        try:
-                            resp = await http.get(
-                                f"{_SC_API_BASE}/tracks/{track_id}?client_id={client_id}"
-                            )
-                            if resp.status_code == 200:
-                                track = resp.json()
-                        except Exception:
-                            pass
+            # Some tracks in playlists only have basic info (id, no media).
+            # Fetch full track data if transcodings are missing.
+            if not track.get("media", {}).get("transcodings"):
+                track_id = track.get("id")
+                if track_id:
+                    try:
+                        resp = await http.get(
+                            f"{_SC_API_BASE}/tracks/{track_id}?client_id={client_id}"
+                        )
+                        if resp.status_code == 200:
+                            track = resp.json()
+                    except Exception:
+                        pass
 
-                if track.get("policy") == "BLOCK":
-                    continue
+            if track.get("policy") == "BLOCK":
+                continue
 
-                track_count += 1
-                track_title = track.get("title", f"Track {i + 1}")
+            track_count += 1
+            track_title = track.get("title", f"Track {i + 1}")
 
-                try:
-                    track_variants = await self._extract_track_via_api(track, client_id, http)
-                except Exception:
-                    continue
+            try:
+                track_variants = await self._extract_track_via_api(track, client_id, http)
+            except Exception:
+                continue
 
-                for v in track_variants:
-                    v.label = f"[{i + 1}] {track_title} – {v.label}"
-                    all_variants.append(v)
+            for v in track_variants:
+                v.label = f"[{i + 1}] {track_title} – {v.label}"
+                all_variants.append(v)
 
-                # Waveform
-                waveform_url = track.get("waveform_url")
-                if waveform_url:
-                    all_variants.append(ScrapedVariant(
-                        label=f"[{i + 1}] {track_title} – Waveform",
-                        format="png",
-                        url=waveform_url.replace(".json", ".png"),
-                        quality="waveform",
-                        has_video=False,
-                        has_audio=False,
-                    ))
+            # Waveform
+            waveform_url = track.get("waveform_url")
+            if waveform_url:
+                all_variants.append(ScrapedVariant(
+                    label=f"[{i + 1}] {track_title} – Waveform",
+                    format="png",
+                    url=waveform_url.replace(".json", ".png"),
+                    quality="waveform",
+                    has_video=False,
+                    has_audio=False,
+                ))
 
         if not all_variants:
             raise ValueError("No downloadable tracks in this playlist.")
@@ -596,32 +588,31 @@ class SoundCloudScraper(BaseScraper):
                     elif "reposts" in url_type:
                         endpoint = "reposts"
 
-                    async with httpx.AsyncClient(
-                        timeout=15, follow_redirects=True, headers=_HEADERS,
-                    ) as http:
-                        resp = await http.get(
-                            f"{_SC_API_BASE}/users/{user_id}/{endpoint}"
-                            f"?client_id={client_id}&limit=50&offset=0"
-                        )
-                        if resp.status_code == 200:
-                            collection = resp.json()
-                            items = collection.get("collection", [])
-                            # For likes, the track is nested under "track"
-                            tracks = []
-                            for item in items:
-                                if isinstance(item, dict):
-                                    t = item.get("track", item)
-                                    if isinstance(t, dict) and t.get("kind") == "track":
-                                        tracks.append(t)
-                            if tracks:
-                                result = await self._build_playlist_result_from_api(
-                                    {"title": f"{username}'s {url_type.replace('user_', '').title()}",
-                                     "description": f"{len(tracks)} tracks",
-                                     "user": data, "duration": 0,
-                                     "artwork_url": data.get("avatar_url")},
-                                    tracks, client_id,
-                                )
-                                return result
+                    http = get_http_client()
+                    resp = await http.get(
+                        f"{_SC_API_BASE}/users/{user_id}/{endpoint}"
+                        f"?client_id={client_id}&limit=50&offset=0",
+                        headers=_HEADERS,
+                    )
+                    if resp.status_code == 200:
+                        collection = resp.json()
+                        items = collection.get("collection", [])
+                        # For likes, the track is nested under "track"
+                        tracks = []
+                        for item in items:
+                            if isinstance(item, dict):
+                                t = item.get("track", item)
+                                if isinstance(t, dict) and t.get("kind") == "track":
+                                    tracks.append(t)
+                        if tracks:
+                            result = await self._build_playlist_result_from_api(
+                                {"title": f"{username}'s {url_type.replace('user_', '').title()}",
+                                 "description": f"{len(tracks)} tracks",
+                                 "user": data, "duration": 0,
+                                 "artwork_url": data.get("avatar_url")},
+                                tracks, client_id,
+                            )
+                            return result
             except Exception as exc:
                 logger.debug("soundcloud_api_user_failed", error=str(exc)[:200])
 
@@ -784,12 +775,10 @@ class SoundCloudScraper(BaseScraper):
         segment URL, and return it for direct download.
         """
         try:
-            async with httpx.AsyncClient(
-                timeout=10, follow_redirects=True, headers=_HEADERS,
-            ) as client:
-                resp = await client.get(m3u8_url)
-                resp.raise_for_status()
-                content = resp.text
+            client = get_http_client()
+            resp = await client.get(m3u8_url, headers=_HEADERS)
+            resp.raise_for_status()
+            content = resp.text
 
             # Parse m3u8: find lines that are URLs (not comments)
             base_url = m3u8_url.rsplit("/", 1)[0] + "/"
@@ -927,10 +916,10 @@ class SoundCloudScraper(BaseScraper):
         """Use SoundCloud's oEmbed API for basic metadata."""
         oembed_url = f"https://soundcloud.com/oembed?format=json&url={quote(url, safe='')}"
 
-        async with httpx.AsyncClient(timeout=15, headers=_HEADERS) as client:
-            resp = await client.get(oembed_url)
-            resp.raise_for_status()
-            data = resp.json()
+        client = get_http_client()
+        resp = await client.get(oembed_url, headers=_HEADERS)
+        resp.raise_for_status()
+        data = resp.json()
 
         title = data.get("title")
         author = data.get("author_name")
@@ -984,14 +973,12 @@ class SoundCloudScraper(BaseScraper):
 
     async def _scrape_html_og(self, url: str, tab: str) -> Optional[ScrapedResult]:
         """Parse OG tags from the HTML page as last resort."""
-        async with httpx.AsyncClient(
-            timeout=15,
-            follow_redirects=True,
-            headers={**_HEADERS, "Accept": "text/html"},
-        ) as client:
-            resp = await client.get(url)
-            resp.raise_for_status()
-            html = resp.text
+        client = get_http_client()
+        resp = await client.get(
+            url, headers={**_HEADERS, "Accept": "text/html"},
+        )
+        resp.raise_for_status()
+        html = resp.text
 
         if len(html) < 500:
             return None

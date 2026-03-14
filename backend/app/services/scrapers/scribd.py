@@ -30,6 +30,7 @@ from PIL import Image
 
 from app.services.scrapers.base import BaseScraper, ScrapedResult, ScrapedVariant
 from app.services.scrapers.helpers import find_og_tag
+from app.utils.http_client import get_http_client
 
 logger = structlog.get_logger()
 
@@ -163,19 +164,19 @@ class ScribdScraper(BaseScraper):
         """``GET /documents/{doc_id}.json`` – public, no auth needed."""
         url = f"https://www.scribd.com/documents/{doc_id}.json"
         try:
-            async with httpx.AsyncClient(
-                follow_redirects=True, timeout=15,
+            client = get_http_client()
+            resp = await client.get(
+                url,
                 headers={"User-Agent": _UA, "Accept": "application/json"},
-            ) as client:
-                resp = await client.get(url)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    logger.info("scribd_json_api",
-                                doc_id=doc_id,
-                                pages=data.get("page_count"),
-                                title=str(data.get("title", ""))[:60])
-                    return data
-                logger.warning("scribd_json_api_status", status=resp.status_code)
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                logger.info("scribd_json_api",
+                            doc_id=doc_id,
+                            pages=data.get("page_count"),
+                            title=str(data.get("title", ""))[:60])
+                return data
+            logger.warning("scribd_json_api_status", status=resp.status_code)
         except Exception as exc:
             logger.warning("scribd_json_api_fail", error=str(exc)[:120])
         return {}
@@ -266,13 +267,13 @@ class ScribdScraper(BaseScraper):
     async def _fetch_html(self, url: str) -> str:
         """Lightweight HTML fetch for OG-tag fallback."""
         try:
-            async with httpx.AsyncClient(
-                follow_redirects=True, timeout=15,
+            client = get_http_client()
+            resp = await client.get(
+                url,
                 headers={"User-Agent": _UA, "Accept-Language": "en-US,en;q=0.9"},
-            ) as client:
-                resp = await client.get(url)
-                if resp.status_code == 200:
-                    return resp.text
+            )
+            if resp.status_code == 200:
+                return resp.text
         except Exception as e:
             logger.debug("scribd_html_fail", error=str(e)[:80])
         return ""

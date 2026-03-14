@@ -22,6 +22,7 @@ from app.services.scrapers.base import BaseScraper, ScrapedResult, ScrapedVarian
 from app.services.scrapers.helpers import build_ytdlp_variants, parse_og_tags, find_og_tag
 from app.utils.ytdlp_helper import extract_with_ytdlp
 from app.utils.browser import get_page_content
+from app.utils.http_client import get_http_client
 
 logger = structlog.get_logger()
 
@@ -168,12 +169,10 @@ class TumblrScraper(BaseScraper):
         contains direct media URLs. Works without auth.
         """
         embed_url = f"https://embed.tumblr.com/embed/post/{blog_name}/{post_id}"
-        async with httpx.AsyncClient(
-            timeout=15, follow_redirects=True, headers=_HEADERS,
-        ) as client:
-            resp = await client.get(embed_url)
-            resp.raise_for_status()
-            html = resp.text
+        client = get_http_client()
+        resp = await client.get(embed_url, headers=_HEADERS)
+        resp.raise_for_status()
+        html = resp.text
 
         if len(html) < 200:
             return None
@@ -194,11 +193,11 @@ class TumblrScraper(BaseScraper):
                 f"/posts?id={post_id}&api_key={api_key}&npf=true"
             )
             try:
-                async with httpx.AsyncClient(
-                    timeout=15, headers={"User-Agent": _UA},
-                ) as client:
-                    resp = await client.get(api_url)
-                    resp.raise_for_status()
+                client = get_http_client()
+                resp = await client.get(
+                    api_url, headers={"User-Agent": _UA},
+                )
+                resp.raise_for_status()
 
                 data = resp.json()
                 posts = data.get("response", {}).get("posts", [])

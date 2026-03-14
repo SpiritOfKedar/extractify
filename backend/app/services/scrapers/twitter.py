@@ -17,6 +17,7 @@ from app.core.config import settings
 from app.services.scrapers.base import BaseScraper, ScrapedResult, ScrapedVariant
 from app.services.scrapers.helpers import build_ytdlp_variants
 from app.utils.ytdlp_helper import extract_with_ytdlp
+from app.utils.http_client import get_http_client
 
 logger = logging.getLogger(__name__)
 
@@ -177,16 +178,16 @@ class TwitterScraper(BaseScraper):
             {"withArticleRichContentState": False}, separators=(",", ":")
         )
 
-        async with httpx.AsyncClient(timeout=20) as client:
-            resp = await client.get(
-                _GRAPHQL_ENDPOINT,
-                headers=self._build_headers(),
-                params={
-                    "variables": variables,
-                    "features": features,
-                    "fieldToggles": field_toggles,
-                },
-            )
+        client = get_http_client()
+        resp = await client.get(
+            _GRAPHQL_ENDPOINT,
+            headers=self._build_headers(),
+            params={
+                "variables": variables,
+                "features": features,
+                "fieldToggles": field_toggles,
+            },
+        )
 
         if resp.status_code != 200:
             logger.warning("GraphQL HTTP %s", resp.status_code)
@@ -330,10 +331,10 @@ class TwitterScraper(BaseScraper):
             url,
         )
 
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.get(api_url)
-            resp.raise_for_status()
-            data = resp.json()
+        client = get_http_client()
+        resp = await client.get(api_url)
+        resp.raise_for_status()
+        data = resp.json()
 
         tweet = data.get("tweet")
         if not tweet:

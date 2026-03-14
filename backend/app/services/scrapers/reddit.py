@@ -19,6 +19,7 @@ from app.services.scrapers.base import BaseScraper, ScrapedResult, ScrapedVarian
 from app.services.scrapers.helpers import build_ytdlp_variants, parse_og_tags
 from app.utils.ytdlp_helper import extract_with_ytdlp
 from app.utils.browser import get_page_content
+from app.utils.http_client import get_http_client
 
 
 class RedditScraper(BaseScraper):
@@ -74,11 +75,9 @@ class RedditScraper(BaseScraper):
         """Resolve redd.it short URLs to full reddit.com URLs."""
         if "redd.it" in url and "reddit.com" not in url:
             try:
-                async with httpx.AsyncClient(
-                    follow_redirects=True, timeout=10
-                ) as client:
-                    resp = await client.head(url)
-                    return str(resp.url)
+                client = get_http_client()
+                resp = await client.head(url)
+                return str(resp.url)
             except Exception:
                 pass
         return url
@@ -98,14 +97,13 @@ class RedditScraper(BaseScraper):
             (parsed.scheme, parsed.netloc, json_path, "", "", "")
         )
 
-        async with httpx.AsyncClient(
-            timeout=15,
-            follow_redirects=True,
+        client = get_http_client()
+        resp = await client.get(
+            json_url,
             headers={"User-Agent": "Mozilla/5.0 (compatible; Extractify/1.0)"},
-        ) as client:
-            resp = await client.get(json_url)
-            resp.raise_for_status()
-            data = resp.json()
+        )
+        resp.raise_for_status()
+        data = resp.json()
 
         # Reddit returns  [post_listing, comments_listing]
         if not isinstance(data, list) or len(data) < 1:

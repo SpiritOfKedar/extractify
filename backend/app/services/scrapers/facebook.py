@@ -14,25 +14,24 @@ cookie jar and network-level interception of Facebook's Relay/GraphQL
 responses that carry ``playable_url`` and image ``uri`` values.
 """
 
-import asyncio
+import base64
+import json
 import os
 import re
 import tempfile
 import traceback
 import structlog
-from concurrent.futures import ThreadPoolExecutor
 from html import unescape
 from typing import Optional
+from urllib.parse import urlparse, urlencode, parse_qs
 
 from app.core.config import settings
 from app.services.scrapers.base import BaseScraper, ScrapedResult, ScrapedVariant
 from app.services.scrapers.helpers import build_ytdlp_variants, parse_og_tags
 from app.utils.ytdlp_helper import extract_with_ytdlp
-from app.utils.browser import get_page_content
+from app.utils.browser import get_page_content, browser_pool
 
 logger = structlog.get_logger()
-
-_story_thread_pool = ThreadPoolExecutor(max_workers=2)
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -254,30 +253,80 @@ class FacebookScraper(BaseScraper):
 
         html = await get_page_content(url, use_browser=True, cookies=pw_cookies)
         if html:
+            logger.debug("fb_photo_html_length", length=len(html))
+
             # Try OG tags first
             result = parse_og_tags(html, "Facebook Photo", "image")
             if result.variants:
+                logger.info("fb_photo_from_og_tags")
                 return result
 
-            # Extract high-res images from rendered page
-            variants: list[ScrapedVariant] = []
-            seen: set[str] = set()
-            for raw in re.findall(
-                r"(https://(?:scontent|external)[^\s\"']+\.(?:jpg|png|webp)[^\s\"']*)",
-                html,
-            ):
-                clean = unescape(raw)
-                if clean not in seen and "emoji" not in clean:
-                    seen.add(clean)
-                    variants.append(ScrapedVariant(
-                        label=f"Image {len(variants) + 1}",
-                        format="jpg", url=clean,
-                    ))
+            # Patterns for images to SKIP (profile pics, placeholders, thumbnails)
+            # NOTE: _n.jpg is Facebook's NORMAL photo naming - do NOT skip it!
+            _SKIP_RE = re.compile(
+                r"t1\.30497|"            # default FB profile pic placeholder
+                r"t39\.30808-1|"         # profile photos (small circle pics)
+                r"t15\.\d+-10|"          # video poster thumbnails
+                r"/emoji|/static|"       # emoji and static assets (with path prefix)
+                r"hads-ak|"              # ad images
+                r"/[sp]\d{2,3}x\d{2,3}/|"  # tiny presets e.g. /s100x100/ (must have slashes)
+                r"rsrc\.php|"            # static resources
+                r"data:image"            # inline base64 images
+            )
 
-            if variants:
+            # Extract high-res images from rendered page
+            candidates: list[tuple[str, int]] = []  # (url, estimated_size)
+            seen: set[str] = set()
+
+            all_images = re.findall(
+                r"(https://(?:scontent|external)[^\s\"']+\.(?:jpg|jpeg|png|webp)[^\s\"']*)",
+                html,
+            )
+            logger.debug("fb_photo_found_images", count=len(all_images))
+
+            for raw in all_images:
+                clean = unescape(raw)
+                path = clean.split("?")[0]
+
+                if path in seen:
+                    continue
+                seen.add(path)
+
+                # Skip unwanted images
+                if _SKIP_RE.search(clean):
+                    logger.debug("fb_photo_skipped", url=clean[:80])
+                    continue
+
+                # Estimate image size from URL dimension hints
+                # FB URLs often have patterns like /p960x960/ or _1080x1080
+                size = 0
+                dim_match = re.search(r'[/_p](\d{3,4})x(\d{3,4})', clean)
+                if dim_match:
+                    w, h = int(dim_match.group(1)), int(dim_match.group(2))
+                    size = w * h
+                else:
+                    # No dimension hint - assume medium size
+                    size = 500 * 500
+
+                candidates.append((clean, size))
+                logger.debug("fb_photo_candidate", size=size, url=clean[:80])
+
+            logger.info("fb_photo_candidates", count=len(candidates))
+
+            if candidates:
+                # Sort by size descending - the main photo is usually the largest
+                candidates.sort(key=lambda x: x[1], reverse=True)
+
+                # Take only the largest image (the actual photo)
+                best_url = candidates[0][0]
+                variants = [ScrapedVariant(
+                    label="Photo",
+                    format="jpg", url=best_url,
+                )]
+
                 return ScrapedResult(
                     title="Facebook Photo",
-                    thumbnail_url=variants[0].url,
+                    thumbnail_url=best_url,
                     content_type="image", variants=variants,
                 )
 
@@ -306,11 +355,13 @@ class FacebookScraper(BaseScraper):
             )
 
         pw_cookies = _get_full_playwright_cookies()
-        logger.info("fb_story_start", url=url[:120], pw_cookies=len(pw_cookies))
+        _, story_id = self._parse_fb_story_url(url)
+        logger.info("fb_story_start", url=url[:120],
+                     story_id=story_id, pw_cookies=len(pw_cookies))
 
         # ── Strategy 1: Playwright + GraphQL interception ────────
         try:
-            media = await self._extract_story_media_pw(url, pw_cookies)
+            media = await self._extract_story_media_pw(url, pw_cookies, story_id=story_id)
             if media:
                 return self._build_story_result(media)
         except Exception as exc:
@@ -347,53 +398,338 @@ class FacebookScraper(BaseScraper):
 
     async def _extract_story_media_pw(
         self, url: str, pw_cookies: list[dict],
+        story_id: Optional[str] = None,
     ) -> list[tuple[str, str]]:
-        """Run Playwright in a thread-pool, intercept GraphQL responses.
+        """Extract story media by intercepting actual CDN media file requests.
+
+        When Facebook opens a specific story URL, the browser immediately
+        fetches the video (.mp4) or image (.jpg) for the CURRENTLY DISPLAYED
+        story from Facebook's CDN (video-*.fbcdn.net / scontent-*.fbcdn.net).
+
+        **For single-story targeting (story_id present):**
+        We capture the FIRST video/image CDN request the browser makes after
+        navigation — that is the media for the targeted story (the one
+        Facebook opened directly).
+
+        **For all stories (no story_id):**
+        Fall back to full HTML extraction to get all media.
 
         Returns a list of (type, url) tuples where type is "video" or "image".
         """
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            _story_thread_pool,
-            self._sync_extract_story_media,
-            url,
-            pw_cookies,
+        _SKIP_RE = re.compile(
+            r"t1\.30497|"            # default FB profile pic
+            r"t39\.30808-1|"         # profile photos
+            r"t15\.\d+-10|"          # video poster thumbnails
+            r"emoji|static|"
+            r"hads-ak|"              # ad images
+            r"/[sp]\d{2,3}x\d{2,3}[/_]",  # tiny presets
         )
 
+        single_story = bool(story_id)
+
+        # ── CDN media request interception ─────────────────
+        # Instead of parsing JSON data (which contains ALL stories),
+        # we watch for the actual media file the browser loads to
+        # play/display the currently visible story.
+        #
+        # Video CDN pattern: https://video-*.fbcdn.net/.../*.mp4?...
+        # Image CDN pattern: https://scontent-*.fbcdn.net/...  (large images)
+        #
+        # The FIRST such request after page load = the targeted story.
+        captured_cdn_urls: list[tuple[str, str]] = []  # (type, url)
+        # Match video files from ANY fbcdn domain (video-* or scontent-*)
+        # Facebook serves story videos from both domains.
+        _cdn_video_re = re.compile(
+            r"https?://(?:video|scontent)[^/]*\.fbcdn\.net/.*\.mp4",
+            re.IGNORECASE,
+        )
+        _cdn_image_re = re.compile(
+            r"https?://scontent[^/]*\.fbcdn\.net/",
+            re.IGNORECASE,
+        )
+
+        def _strip_byte_range(url: str) -> str:
+            """Remove bytestart/byteend params so the URL fetches the full file."""
+            parsed = urlparse(url)
+            params = parse_qs(parsed.query, keep_blank_values=True)
+            params.pop("bytestart", None)
+            params.pop("byteend", None)
+            # parse_qs returns lists; flatten back to single values
+            flat = {k: v[0] for k, v in params.items()}
+            clean_query = urlencode(flat)
+            return parsed._replace(query=clean_query).geturl()
+
+        async def _intercept_cdn(response):
+            """Capture actual media file requests from Facebook CDN."""
+            try:
+                req_url = response.url
+                resource_type = response.request.resource_type
+
+                # Video files from CDN — check FIRST (before images)
+                # so .mp4 on scontent domains is tagged as video, not image.
+                if _cdn_video_re.search(req_url):
+                    if response.status in (200, 206):
+                        clean_url = _strip_byte_range(req_url)
+                        captured_cdn_urls.append(("video", clean_url))
+                        logger.debug("fb_story_cdn_video", url=clean_url[:100])
+                        return
+
+                # Large images from CDN (skip small ones / thumbnails)
+                if resource_type in ("image", "xhr", "fetch", "other"):
+                    if _cdn_image_re.search(req_url) and not _SKIP_RE.search(req_url):
+                        content_len = response.headers.get("content-length", "0")
+                        # Only capture images > 50KB (story images are large)
+                        if int(content_len or 0) > 50_000:
+                            if response.status == 200:
+                                captured_cdn_urls.append(("image", req_url))
+                                logger.debug("fb_story_cdn_image", url=req_url[:100])
+            except Exception:
+                pass
+
+        # ── Also capture GraphQL for HD URL extraction ─────
+        # CDN interception gets the URL the browser actually loaded,
+        # but that might be SD. We also parse GraphQL responses to
+        # find the HD progressive_url for the same video, so we can
+        # offer the best quality.
+        captured_progressive: list[tuple[str, str]] = []  # (quality, url)
+
+        async def _intercept_graphql(response):
+            """Capture progressive video URLs from GraphQL responses."""
+            try:
+                content_type = response.headers.get("content-type", "")
+                if response.status != 200:
+                    return
+                if "json" not in content_type and "javascript" not in content_type:
+                    return
+                if "facebook.com" not in response.url:
+                    return
+
+                try:
+                    body = await response.text()
+                except Exception:
+                    return
+                if not body or "progressive_url" not in body:
+                    return
+
+                for m in re.finditer(
+                    r'"progressive_url":\s*"([^"]+)"'
+                    r'.*?"quality":\s*"([^"]+)"',
+                    body, re.DOTALL,
+                ):
+                    raw_url = m.group(1)
+                    quality = m.group(2).upper()
+                    clean = (
+                        raw_url.replace("\\/", "/")
+                        .replace("\\u0025", "%")
+                        .replace("\\u0026", "&")
+                        .replace("&amp;", "&")
+                    )
+                    captured_progressive.append((quality, clean))
+            except Exception:
+                pass
+
+        # ── Page navigation ────────────────────────────────
+        context = await browser_pool.get_context(
+            cookies=pw_cookies,
+            viewport={"width": 1280, "height": 720},
+            block_resources=False,
+        )
+        try:
+            page = await context.new_page()
+
+            # Register interceptors BEFORE navigation
+            page.on("response", _intercept_cdn)
+            page.on("response", _intercept_graphql)
+
+            try:
+                await page.goto(url, wait_until="domcontentloaded", timeout=30_000)
+                try:
+                    await page.wait_for_selector(
+                        'video, [role="main"] img[src*="scontent"]',
+                        timeout=10_000,
+                    )
+                except Exception:
+                    await page.wait_for_timeout(3_000)
+            except Exception as exc:
+                logger.debug("fb_story_nav_err", error=repr(exc)[:120])
+
+            # Wait for the story video/image to start loading
+            await page.wait_for_timeout(3_000)
+
+            # Check for login redirect
+            if "/login" in page.url.lower():
+                logger.warning("fb_story_login_redirect")
+                return []
+
+            logger.info("fb_story_cdn_captured",
+                        cdn_count=len(captured_cdn_urls),
+                        progressive_count=len(captured_progressive),
+                        single_story=single_story)
+
+            # Get page HTML (needed by multiple strategies below)
+            html = ""
+            try:
+                html = await page.content()
+            except Exception:
+                pass
+
+            # ── Strategy A: CDN → identify video_id → progressive URL ──
+            # The CDN-intercepted URL is a DASH segment (video-only, no
+            # audio). We extract the video_id from its `efg` parameter,
+            # then find the matching progressive_url in the HTML which
+            # is a muxed file with both audio and video.
+            if single_story and captured_cdn_urls:
+                first_kind, cdn_url = captured_cdn_urls[0]
+
+                if first_kind == "video" and html:
+                    video_id = self._extract_video_id_from_efg(cdn_url)
+                    logger.info("fb_story_video_id", video_id=video_id)
+
+                    if video_id:
+                        # Find progressive_urls block near this video_id in HTML
+                        prog_url = self._find_progressive_for_video_id(
+                            html, video_id,
+                        )
+                        if prog_url:
+                            logger.info("fb_story_matched_progressive",
+                                        video_id=video_id)
+                            return [("video", prog_url)]
+
+                    # Fallback: use captured progressive URLs from interceptor
+                    if captured_progressive:
+                        hd = next((u for q, u in captured_progressive if q == "HD"), None)
+                        sd = next((u for q, u in captured_progressive if q == "SD"), None)
+                        best = hd or sd
+                        if best:
+                            logger.info("fb_story_intercepted_progressive")
+                            return [("video", best)]
+
+                    # Last resort for video: return CDN URL (no audio)
+                    logger.warning("fb_story_dash_only_no_progressive")
+                    return [("video", cdn_url)]
+
+                elif first_kind == "image":
+                    return [("image", cdn_url)]
+
+            # ── Strategy B: Progressive URLs from interceptor ──────
+            if single_story and captured_progressive:
+                hd = next((u for q, u in captured_progressive if q == "HD"), None)
+                sd = next((u for q, u in captured_progressive if q == "SD"), None)
+                best = hd or sd
+                if best:
+                    logger.info("fb_story_from_progressive",
+                                quality="HD" if hd else "SD")
+                    return [("video", best)]
+
+            # ── Strategy C: Full HTML extraction (fallback) ────────
+            # Used when: no story_id, or CDN interception failed.
+            if not html:
+                return []
+
+            all_html_media = self._extract_media_from_text(html, _SKIP_RE)
+            logger.info("fb_story_html_fallback",
+                         count=len(all_html_media),
+                         story_id=story_id)
+            return all_html_media
+
+        finally:
+            await context.close()
+
     @staticmethod
-    def _sync_extract_story_media(
-        url: str, pw_cookies: list[dict],
-    ) -> list[tuple[str, str]]:
-        """Synchronous Playwright story extraction (runs in thread).
+    def _extract_video_id_from_efg(url: str) -> Optional[str]:
+        """Extract video_id from the efg query parameter in a Facebook CDN URL.
 
-        Opens the story URL with full cookies, waits for the page to
-        hydrate, then extracts media from the embedded React/Relay JSON:
-
-        **Videos** – Facebook embeds ``progressive_urls`` arrays in the
-        page's hydration JSON.  Each array corresponds to one story video
-        and contains SD (360p) and HD (720p) progressive-download URLs.
-        These are **complete, directly downloadable MP4 files** with auth
-        tokens baked into the query string (no cookies needed to fetch).
-
-        **Photos** – Photo-only stories embed ``"image":{"uri":"…"}``
-        objects.  We pick the highest-resolution variant and skip video
-        thumbnails / profile pictures.
-
-        The previous network-interception approach captured CMAF/DASH
-        *segment* URLs which returned only the tiny initialisation
-        segment (~1 KB) when re-fetched – resulting in corrupt files.
+        Facebook CDN URLs contain an ``efg`` parameter which is a
+        URL-encoded, base64-encoded JSON object.  It includes the
+        ``video_id`` field that identifies which video is being streamed.
         """
-        from playwright.sync_api import sync_playwright
-        import sys
+        m = re.search(r'[?&]efg=([^&]+)', url)
+        if not m:
+            return None
+        try:
+            from urllib.parse import unquote
+            # Double-decode: %253D → %3D → =
+            efg_b64 = unquote(unquote(m.group(1)))
+            # Add padding if needed
+            padding = 4 - len(efg_b64) % 4
+            if padding != 4:
+                efg_b64 += "=" * padding
+            efg_json = base64.b64decode(efg_b64)
+            efg_data = json.loads(efg_json)
+            vid = efg_data.get("video_id")
+            return str(vid) if vid else None
+        except Exception:
+            return None
 
-        # On Windows, uvicorn sets WindowsSelectorEventLoopPolicy which
-        # does NOT support subprocess creation.  Playwright needs the
-        # ProactorEventLoop to spawn the browser process.  We restore it
-        # for this thread before launching Playwright.
-        if sys.platform == "win32":
-            asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    @staticmethod
+    def _find_progressive_for_video_id(
+        html: str, video_id: str,
+    ) -> Optional[str]:
+        """Find the progressive_url in HTML that belongs to a specific video_id.
 
-        media: list[tuple[str, str]] = []   # ("video"|"image", url)
+        Facebook's hydration JSON embeds video data as objects containing
+        both ``"id":"VIDEO_ID"`` and ``"progressive_urls":[...]`` nearby.
+        We search for the video_id, then look for the nearest
+        progressive_urls block within a reasonable window around it.
+
+        Returns the best (HD or SD) progressive URL, or None.
+        """
+        def _clean(raw: str) -> str:
+            return (
+                raw.replace("\\/", "/")
+                .replace("\\u0025", "%")
+                .replace("\\u0026", "&")
+                .replace("&amp;", "&")
+            )
+
+        _prog_block_re = re.compile(
+            r'"progressive_urls":\s*\[(.*?)\]', re.DOTALL,
+        )
+        _prog_entry_re = re.compile(
+            r'"progressive_url":\s*"([^"]+)"'
+            r'.*?"quality":\s*"([^"]+)"',
+            re.DOTALL,
+        )
+
+        # Find all positions where this video_id appears in the HTML
+        vid_positions = [m.start() for m in re.finditer(re.escape(video_id), html)]
+        if not vid_positions:
+            return None
+
+        # For each progressive_urls block, check if any video_id mention
+        # is within ±5000 chars (they're in the same JSON object)
+        best_url = None
+        best_dist = float("inf")
+
+        for block in _prog_block_re.finditer(html):
+            block_pos = block.start()
+            # Find nearest video_id mention to this block
+            for vid_pos in vid_positions:
+                dist = abs(block_pos - vid_pos)
+                if dist < best_dist and dist < 5000:
+                    # Parse this block for HD/SD
+                    content = block.group(1)
+                    entries: dict[str, str] = {}
+                    for m in _prog_entry_re.finditer(content):
+                        entries[m.group(2).upper()] = m.group(1)
+                    candidate = entries.get("HD") or entries.get("SD")
+                    if candidate:
+                        best_url = _clean(candidate)
+                        best_dist = dist
+
+        return best_url
+
+    @staticmethod
+    def _extract_media_from_text(
+        text: str,
+        skip_re,
+    ) -> list[tuple[str, str]]:
+        """Extract video/image URLs from a text blob (HTML or JSON response).
+
+        Returns a NEW list of (type, url) tuples. Each call is independent
+        (no shared state), so different response bodies produce isolated results.
+        """
+        media: list[tuple[str, str]] = []
         seen_paths: set[str] = set()
 
         def _add(kind: str, raw_url: str):
@@ -412,126 +748,72 @@ class FacebookScraper(BaseScraper):
             seen_paths.add(path)
             media.append((kind, clean))
 
-        # Patterns for non-story images to skip
-        _SKIP_RE = re.compile(
-            r"t1\.30497|"            # default FB profile pic
-            r"t39\.30808-1|"         # profile photos
-            r"t15\.\d+-10|"          # video poster thumbnails
-            r"emoji|static|"
-            r"hads-ak|"              # ad images
-            r"/[sp]\d{2,3}x\d{2,3}[/_]",  # tiny presets
+        # ── 1. Progressive video URLs (primary) ──────────
+        _prog_block_re = re.compile(
+            r'"progressive_urls":\s*\[(.*?)\]', re.DOTALL,
         )
+        _prog_entry_re = re.compile(
+            r'"progressive_url":\s*"([^"]+)"'
+            r'.*?"quality":\s*"([^"]+)"',
+            re.DOTALL,
+        )
+        found_video = False
+        for block in _prog_block_re.finditer(text):
+            content = block.group(1)
+            entries: dict[str, str] = {}
+            for m in _prog_entry_re.finditer(content):
+                entries[m.group(2).upper()] = m.group(1)
+            best = entries.get("HD") or entries.get("SD")
+            if best:
+                _add("video", best)
+                found_video = True
 
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            context = browser.new_context(
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/136.0.0.0 Safari/537.36"
-                ),
-                viewport={"width": 1280, "height": 720},
-            )
-            context.add_cookies(pw_cookies)
-            page = context.new_page()
+        # Fallback: bare progressive_url without quality
+        if not found_video:
+            for m in re.finditer(
+                r'"progressive_url":\s*"([^"]+)"', text
+            ):
+                _add("video", m.group(1))
+                found_video = True
 
-            try:
-                page.goto(url, wait_until="networkidle", timeout=30_000)
-                page.wait_for_timeout(8_000)
-            except Exception as exc:
-                logger.debug("fb_story_nav_err", error=repr(exc)[:120])
+        # ── 2. Secondary video URL patterns ──────────────
+        if not found_video:
+            for pat in (
+                r'"playable_url_quality_hd":\s*"([^"]+)"',
+                r'"playable_url":\s*"([^"]+)"',
+                r'"browser_native_hd_url":\s*"([^"]+)"',
+                r'"browser_native_sd_url":\s*"([^"]+)"',
+            ):
+                for m in re.finditer(pat, text):
+                    val = m.group(1)
+                    if val and val != "null":
+                        _add("video", val)
+                        found_video = True
 
-            # Check for login redirect (session expired)
-            if "/login" in page.url.lower():
-                logger.warning("fb_story_login_redirect")
-                browser.close()
-                return []
+        # ── 3. Photo story images (only if no video) ─────
+        if not found_video:
+            for m in re.finditer(
+                r'"image":\s*\{\s*"uri":\s*"(https?:\\?/\\?/scontent[^"]+)"',
+                text,
+            ):
+                uri = m.group(1)
+                if skip_re.search(uri):
+                    continue
+                start = max(0, m.start() - 300)
+                ctx = text[start:m.start()]
+                if "preferred_thumbnail" in ctx or "previewImage" in ctx:
+                    continue
+                _add("image", uri)
 
-            # ── Extract media from page HTML / JSON ──────────────
-            try:
-                html = page.content()
-
-                # ── 1. Progressive video URLs (primary) ──────────
-                # Each story video has a "progressive_urls" array:
-                #   [{"progressive_url":"<url>",…,"metadata":{"quality":"SD"}},
-                #    {"progressive_url":"<url>",…,"metadata":{"quality":"HD"}}]
-                # We pick HD when available, SD as fallback.
-                _prog_block_re = re.compile(
-                    r'"progressive_urls":\s*\[(.*?)\]', re.DOTALL,
-                )
-                _prog_entry_re = re.compile(
-                    r'"progressive_url":\s*"([^"]+)"'
-                    r'.*?"quality":\s*"([^"]+)"',
-                    re.DOTALL,
-                )
-                found_progressive = False
-                for block in _prog_block_re.finditer(html):
-                    content = block.group(1)
-                    entries: dict[str, str] = {}
-                    for m in _prog_entry_re.finditer(content):
-                        entries[m.group(2).upper()] = m.group(1)
-                    best = entries.get("HD") or entries.get("SD")
-                    if best:
-                        _add("video", best)
-                        found_progressive = True
-
-                # Fallback: bare progressive_url without quality
-                if not found_progressive:
-                    for m in re.finditer(
-                        r'"progressive_url":\s*"([^"]+)"', html
-                    ):
-                        _add("video", m.group(1))
-                        found_progressive = True
-
-                # ── 2. Secondary video URL patterns ──────────────
-                if not found_progressive:
-                    for pat in (
-                        r'"playable_url_quality_hd":\s*"([^"]+)"',
-                        r'"playable_url":\s*"([^"]+)"',
-                        r'"browser_native_hd_url":\s*"([^"]+)"',
-                        r'"browser_native_sd_url":\s*"([^"]+)"',
-                    ):
-                        for m in re.finditer(pat, html):
-                            val = m.group(1)
-                            if val and val != "null":
-                                _add("video", val)
-
-                # ── 3. Photo story images ────────────────────────
-                # Story-specific photo images use type t51.71878 at
-                # high resolution.  Skip anything that's a video
-                # thumbnail (context contains "preferred_thumbnail"
-                # or "previewImage").
-                for m in re.finditer(
-                    r'"image":\s*\{\s*"uri":\s*"(https?:\\?/\\?/scontent[^"]+)"',
-                    html,
-                ):
-                    uri = m.group(1)
-                    if _SKIP_RE.search(uri):
-                        continue
-                    # Reject video poster thumbnails by context
-                    start = max(0, m.start() - 300)
-                    ctx = html[start:m.start()]
-                    if "preferred_thumbnail" in ctx or "previewImage" in ctx:
-                        continue
-                    _add("image", uri)
-
-                # Also: "photoImage":{"uri":"…"} for explicit photo stories
+            if not media:
                 for m in re.finditer(
                     r'"photoImage"\s*:\s*\{[^}]*"uri":\s*"([^"]+)"',
-                    html, re.IGNORECASE,
+                    text, re.IGNORECASE,
                 ):
                     uri = m.group(1)
-                    if not _SKIP_RE.search(uri):
+                    if not skip_re.search(uri):
                         _add("image", uri)
 
-            except Exception:
-                pass
-
-            browser.close()
-
-        logger.info("fb_story_media_found", count=len(media),
-                     videos=sum(1 for k, _ in media if k == "video"),
-                     images=sum(1 for k, _ in media if k == "image"))
         return media
 
     @staticmethod
@@ -571,6 +853,24 @@ class FacebookScraper(BaseScraper):
     # ─────────────────────────────────────────────────────────────
     #  Helpers
     # ─────────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _parse_fb_story_url(url: str) -> tuple[Optional[str], Optional[str]]:
+        """Extract (username, story_id) from a Facebook story URL.
+
+        Supported formats:
+          - https://www.facebook.com/stories/USERNAME/STORY_ID/
+          - https://www.facebook.com/stories/USERNAME/STORY_ID
+          - https://www.facebook.com/stories/USERNAME/
+
+        Returns (username, story_id) or (None, None).
+        """
+        m = re.search(r"/stories/([^/?#]+)(?:/([^/?#]+))?", url)
+        if m:
+            username = m.group(1)
+            story_id = m.group(2) if m.group(2) else None
+            return username, story_id
+        return None, None
 
     @staticmethod
     def _extract_cdn_media(html: str, content_type: str) -> Optional[ScrapedResult]:

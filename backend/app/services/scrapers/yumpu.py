@@ -43,7 +43,6 @@ import tempfile
 import time
 import traceback
 import uuid
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Optional
 
@@ -54,6 +53,8 @@ from PIL import Image
 
 from app.services.scrapers.base import BaseScraper, ScrapedResult, ScrapedVariant
 from app.services.scrapers.helpers import find_og_tag
+from app.utils.browser import browser_pool
+from app.utils.http_client import get_http_client
 
 logger = structlog.get_logger()
 
@@ -94,8 +95,6 @@ _NEWS_ISSUE_RE = re.compile(r"/issue/(\d+)", re.I)
 # Reader URL suffix (already a reader page)
 _NEWS_READER_RE = re.compile(r"/issue/\d+[^/]*/read", re.I)
 
-# Thread pool for running sync Playwright on Windows
-_PW_POOL = ThreadPoolExecutor(max_workers=2)
 
 # JS expression to extract Eagle player page data from the reader page.
 # Returns {base_path, large_dir, signed_images, title, pages, thumbnail} or null.
@@ -288,13 +287,7 @@ class YumpuScraper(BaseScraper):
         Or None if extraction fails.
         """
         try:
-            loop = asyncio.get_running_loop()
-            data = await loop.run_in_executor(
-                _PW_POOL,
-                self._sync_extract_eagle,
-                reader_url,
-            )
-            return data
+            return await self._extract_eagle_async(reader_url)
         except Exception as e:
             tb = traceback.format_exc()
             logger.error("yumpu_eagle_extract_failed",
@@ -302,51 +295,42 @@ class YumpuScraper(BaseScraper):
                          traceback=tb[-600:])
             return None
 
-    @staticmethod
-    def _sync_extract_eagle(reader_url: str) -> Optional[dict]:
+    async def _extract_eagle_async(self, reader_url: str) -> Optional[dict]:
         """
-        Synchronous Playwright extraction of Eagle player data.
-        Runs in a thread-pool executor.
+        Async Playwright extraction of Eagle player data using the
+        shared BrowserPool.
         """
-        from playwright.sync_api import sync_playwright
-
-        pw = None
-        browser = None
+        context = await browser_pool.get_context(
+            viewport={"width": 1400, "height": 900},
+            block_resources=False,  # Eagle player needs JS/CSS to initialise
+        )
         try:
-            pw = sync_playwright().start()
-            browser = pw.chromium.launch(headless=True)
-            ctx = browser.new_context(viewport={"width": 1400, "height": 900})
-            page = ctx.new_page()
+            page = await context.new_page()
 
             logger.info("yumpu_eagle_loading", url=reader_url[:120])
-            page.goto(reader_url, timeout=30_000)
+            await page.goto(reader_url, wait_until="domcontentloaded", timeout=30_000)
 
-            # Wait for the Eagle player to initialise (it loads JS + API data)
-            # Poll for the yumpu_eagle_api_0 object to appear
-            for attempt in range(20):
-                ready = page.evaluate(
-                    "() => !!(window.yumpu_eagle_api_0"
-                    "  && window.yumpu_eagle_api_0.mainRef"
-                    "  && window.yumpu_eagle_api_0.mainRef.JData"
-                    "  && window.yumpu_eagle_api_0.mainRef.JData.dataJson"
-                    "  && window.yumpu_eagle_api_0.mainRef.JData.dataJson.details"
-                    "  && (window.yumpu_eagle_api_0.mainRef.JData.dataJson.details"
-                    "      .signed_images || {}).large)"
+            # Wait for the Eagle player to initialise using wait_for_function
+            # instead of a manual polling loop — Playwright polls internally
+            # and resolves as soon as the condition is true.
+            try:
+                await page.wait_for_function(
+                    """() => !!(window.yumpu_eagle_api_0
+                        && window.yumpu_eagle_api_0.mainRef
+                        && window.yumpu_eagle_api_0.mainRef.JData
+                        && window.yumpu_eagle_api_0.mainRef.JData.dataJson
+                        && window.yumpu_eagle_api_0.mainRef.JData.dataJson.details
+                        && (window.yumpu_eagle_api_0.mainRef.JData.dataJson.details
+                            .signed_images || {}).large)""",
+                    timeout=10_000,
                 )
-                if ready:
-                    break
-                page.wait_for_timeout(500)
-            else:
+            except Exception:
                 logger.warning("yumpu_eagle_timeout",
                                hint="Eagle player did not provide signed images in 10s")
-                page.close()
-                ctx.close()
                 return None
 
             # Extract the data
-            data = page.evaluate(_EAGLE_EXTRACT_JS)
-            page.close()
-            ctx.close()
+            data = await page.evaluate(_EAGLE_EXTRACT_JS)
 
             if data and data.get("signed_images"):
                 count = len(data["signed_images"])
@@ -355,7 +339,6 @@ class YumpuScraper(BaseScraper):
                 return data
 
             return None
-
         except Exception as e:
             tb = traceback.format_exc()
             logger.error("yumpu_eagle_playwright_err",
@@ -363,16 +346,7 @@ class YumpuScraper(BaseScraper):
                          traceback=tb[-600:])
             return None
         finally:
-            if browser:
-                try:
-                    browser.close()
-                except Exception:
-                    pass
-            if pw:
-                try:
-                    pw.stop()
-                except Exception:
-                    pass
+            await context.close()
 
     # ──────────────────────────────────────────────────────────────
     #  Build PDF from Eagle reader data
@@ -585,24 +559,24 @@ class YumpuScraper(BaseScraper):
         logger.info("yumpu_api_call", doc_id=doc_id, url=api_url)
 
         try:
-            async with httpx.AsyncClient(
-                follow_redirects=True, timeout=20,
+            client = get_http_client()
+            resp = await client.get(
+                api_url,
                 headers={
                     "User-Agent": _UA,
                     "Accept": "application/json, text/javascript, */*",
                     "Referer": f"https://www.yumpu.com/{lang}/document/read/{doc_id}/",
                     "X-Requested-With": "XMLHttpRequest",
                 },
-            ) as client:
-                resp = await client.get(api_url)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    logger.info("yumpu_api_ok", doc_id=doc_id,
-                                pages=len(data.get("document", {}).get("pages", [])))
-                    return data
-                else:
-                    logger.warning("yumpu_api_http_error",
-                                   status=resp.status_code, doc_id=doc_id)
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                logger.info("yumpu_api_ok", doc_id=doc_id,
+                            pages=len(data.get("document", {}).get("pages", [])))
+                return data
+            else:
+                logger.warning("yumpu_api_http_error",
+                               status=resp.status_code, doc_id=doc_id)
         except Exception as e:
             logger.warning("yumpu_api_failed", doc_id=doc_id, error=str(e)[:200])
 
@@ -611,18 +585,18 @@ class YumpuScraper(BaseScraper):
     async def _fetch_json_from_url(self, json_url: str) -> Optional[dict]:
         """Fetch JSON data from a discovered jsonUrl."""
         try:
-            async with httpx.AsyncClient(
-                follow_redirects=True, timeout=20,
+            client = get_http_client()
+            resp = await client.get(
+                json_url,
                 headers={
                     "User-Agent": _UA,
                     "Accept": "application/json",
                     "Referer": "https://www.yumpu.com/",
                     "X-Requested-With": "XMLHttpRequest",
                 },
-            ) as client:
-                resp = await client.get(json_url)
-                if resp.status_code == 200:
-                    return resp.json()
+            )
+            if resp.status_code == 200:
+                return resp.json()
         except Exception as e:
             logger.warning("yumpu_json_url_failed", error=str(e)[:200])
         return None
@@ -692,16 +666,16 @@ class YumpuScraper(BaseScraper):
     async def _fetch_html(self, url: str) -> str:
         """Fetch Yumpu page HTML (follows redirects)."""
         try:
-            async with httpx.AsyncClient(
-                follow_redirects=True, timeout=20,
+            client = get_http_client()
+            resp = await client.get(
+                url,
                 headers={
                     "User-Agent": _UA,
                     "Accept": "text/html,application/xhtml+xml",
                     "Accept-Language": "en-US,en;q=0.9",
                 },
-            ) as client:
-                resp = await client.get(url)
-                return resp.text
+            )
+            return resp.text
         except Exception as e:
             logger.error("yumpu_html_fail", error=str(e)[:120])
             return ""

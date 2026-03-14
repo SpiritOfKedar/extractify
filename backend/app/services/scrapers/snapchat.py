@@ -15,6 +15,7 @@ import httpx
 
 from app.services.scrapers.base import BaseScraper, ScrapedResult, ScrapedVariant
 from app.utils.ytdlp_helper import extract_with_ytdlp
+from app.utils.http_client import get_http_client
 
 
 # Maps snapMediaType int → human label
@@ -218,13 +219,11 @@ class SnapchatScraper(BaseScraper):
     # ── Fetch & parse __NEXT_DATA__ ─────────────────────────────────
     async def _fetch_page_props(self, url: str) -> dict:
         """Fetch Snapchat profile page and return pageProps from __NEXT_DATA__."""
-        async with httpx.AsyncClient(
-            follow_redirects=True,
-            timeout=15,
-            headers={"User-Agent": _PROFILE_UA},
-        ) as client:
-            resp = await client.get(url)
-            resp.raise_for_status()
+        client = get_http_client()
+        resp = await client.get(
+            url, headers={"User-Agent": _PROFILE_UA},
+        )
+        resp.raise_for_status()
 
         match = re.search(
             r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>',

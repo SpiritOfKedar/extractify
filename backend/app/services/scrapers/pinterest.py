@@ -18,6 +18,7 @@ from app.services.scrapers.base import BaseScraper, ScrapedResult, ScrapedVarian
 from app.services.scrapers.helpers import build_ytdlp_variants, parse_og_tags
 from app.utils.ytdlp_helper import extract_with_ytdlp
 from app.utils.browser import get_page_content
+from app.utils.http_client import get_http_client
 
 
 class PinterestScraper(BaseScraper):
@@ -71,9 +72,9 @@ class PinterestScraper(BaseScraper):
         if "pin.it" not in url:
             return url
         try:
-            async with httpx.AsyncClient(follow_redirects=True, timeout=10) as client:
-                resp = await client.head(url)
-                return str(resp.url)
+            client = get_http_client()
+            resp = await client.head(url)
+            return str(resp.url)
         except Exception:
             return url
 

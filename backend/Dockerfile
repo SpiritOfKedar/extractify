@@ -32,6 +32,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libdrm2 libgbm1 ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
+# Install Node.js 22 LTS (required for bgutil PO Token server)
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install bgutil PO Token provider (YouTube anti-bot bypass)
+RUN npm install -g bgutil-ytdlp-pot-provider
+
 # Copy pre-built Python packages from builder stage
 COPY --from=builder /install /usr/local
 

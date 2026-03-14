@@ -9,7 +9,13 @@ from functools import partial
 from typing import Any, Dict
 
 import yt_dlp
+import structlog
 from app.core.config import settings
+
+logger = structlog.get_logger()
+
+# ── Base directory (backend/) for resolving relative paths ────────
+_BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Default yt-dlp options
 _YDL_OPTS: dict = {
@@ -17,31 +23,41 @@ _YDL_OPTS: dict = {
     "no_warnings": True,
     "skip_download": True,              # we only want metadata + URLs
     "noplaylist": True,
-    "socket_timeout": 20,
-    "extractor_retries": 2,
+    "socket_timeout": 10,               # 10s per socket op
+    "extractor_retries": 2,             # retry on transient errors
     "ignore_no_formats_error": True,    # don't error on format selection
+
+    # ── bgutil PO Token provider ──────────────────────────────────
+    # The bgutil server (started by start.sh) runs on port 4416 and
+    # generates Proof of Origin tokens for YouTube requests.
+    # This bypasses YouTube's datacenter IP blocking without cookies.
+    "extractor_args": {
+        "youtube": {
+            "po_token": ["web+bgutil_sc"],
+        },
+    },
 }
 
-# ── Cookie support ────────────────────────────────────────────────
-# Set YTDLP_COOKIES_FILE in .env to a Netscape-format cookies.txt
-# path to authenticate with platforms that need login.
+# ── Optional proxy ───────────────────────────────────────────────
+# Set YTDLP_PROXY in .env to route yt-dlp through a proxy.
+_proxy = os.getenv("YTDLP_PROXY", "").strip()
+if _proxy:
+    _YDL_OPTS["proxy"] = _proxy
+    logger.info("ytdlp_proxy_configured", proxy=_proxy[:30] + "…")
+
+# ── Cookie support (general, non-YouTube) ────────────────────────
+# Set YTDLP_COOKIES_FILE in .env to authenticate with other platforms.
+# YouTube does NOT use cookies — PO Tokens handle auth instead.
 if settings.YTDLP_COOKIES_FILE:
     _cookie_path = settings.YTDLP_COOKIES_FILE
     if os.path.isfile(_cookie_path):
         _YDL_OPTS["cookiefile"] = _cookie_path
-
-# Instagram-specific cookies.txt (used by InstagramScraper directly,
-# but also serve as a fallback if YTDLP_COOKIES_FILE is not set)
-_IG_COOKIE_FILE: str | None = None
-if settings.INSTAGRAM_COOKIES_FILE:
-    _ig_path = settings.INSTAGRAM_COOKIES_FILE
-    if os.path.isfile(_ig_path):
-        _IG_COOKIE_FILE = _ig_path
     else:
-        # Check relative to backend dir
-        _abs_ig = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), _ig_path)
-        if os.path.isfile(_abs_ig):
-            _IG_COOKIE_FILE = _abs_ig
+        _abs = os.path.join(_BACKEND_DIR, _cookie_path)
+        if os.path.isfile(_abs):
+            _YDL_OPTS["cookiefile"] = _abs
+
+logger.info("ytdlp_helper_ready", has_pot_provider=True, has_proxy=bool(_proxy))
 
 
 def _extract_sync(url: str, extra_opts: dict | None = None) -> Dict[str, Any]:
@@ -65,3 +81,4 @@ async def extract_with_ytdlp(
         None,
         partial(_extract_sync, url, extra_opts),
     )
+

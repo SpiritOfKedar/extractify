@@ -13,7 +13,8 @@ from app.routes.extract import router as extract_router
 from app.routes.health import router as health_router
 from app.routes.download import router as download_router
 from app.routes.files import router as files_router
-from app.utils.browser import close_browser
+from app.utils.browser import browser_pool
+from app.utils.http_client import close_http_client
 
 
 @asynccontextmanager
@@ -21,9 +22,11 @@ async def lifespan(app: FastAPI):
     """Startup / shutdown hooks."""
     # ── Startup ──────────────────────────────────
     await connect_db()
+    await browser_pool.start()
     yield
     # ── Shutdown ─────────────────────────────────
-    await close_browser()
+    await browser_pool.stop()
+    await close_http_client()
     await close_db()
 
 
