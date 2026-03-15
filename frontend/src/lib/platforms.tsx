@@ -1,19 +1,4 @@
-import {
-  Instagram,
-  Youtube,
-  Twitter,
-  Facebook,
-  FileText,
-  Linkedin,
-  Music,
-  Send,
-  MessageCircle,
-  Tv,
-  Camera,
-  Globe,
-  Presentation,
-  BookOpen,
-} from "lucide-react";
+import Image from "next/image";
 
 export interface PlatformConfig {
   name: string;
@@ -27,13 +12,61 @@ export interface PlatformConfig {
 }
 
 const iconClass = "h-8 w-8";
+const documentIconClass = "h-8 w-8 rounded-full object-cover";
+const documentIconContainClass = "h-8 w-8 object-cover";
+
+// Helper component for platform icons from Figma exports
+const PlatformIcon = ({
+  src,
+  alt,
+  className,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+}) => (
+  <Image
+    src={src}
+    alt={alt}
+    width={32}
+    height={32}
+    className={className || iconClass}
+  />
+);
+
+const SnapchatIcon = () => (
+  <div className="relative h-8 w-8">
+    <div className="absolute inset-0 rounded-full bg-[#fff853]" />
+    <div className="absolute inset-[27.3%_25.45%_27.04%_25.12%]">
+      <Image
+        src="/assets/figma/7-368/imgVector3.svg"
+        alt=""
+        fill
+        className="object-contain"
+      />
+    </div>
+    <div className="absolute inset-[26.21%_23.92%_25.81%_24.03%]">
+      <Image
+        src="/assets/figma/7-368/imgVector4.svg"
+        alt=""
+        fill
+        className="object-contain"
+      />
+    </div>
+  </div>
+);
 
 export const platformConfigs: Record<string, PlatformConfig> = {
   /* ── Social Media ─────────────────────────────────── */
   facebook: {
     name: "Facebook",
     slug: "facebook",
-    icon: <Facebook className={iconClass} style={{ color: "#1877F2" }} />,
+    icon: (
+      <svg className={iconClass} viewBox="0 0 24 24" fill="none">
+        <rect width="24" height="24" rx="12" fill="#1877F2"/>
+        <path fillRule="evenodd" clipRule="evenodd" d="M13.875 8.125C13.5103 8.125 13.1606 8.26987 12.9027 8.52773C12.6449 8.78559 12.5 9.13533 12.5 9.5V11.125H14.3245L13.887 12.875H12.5V17.625C12.5 17.9702 12.2202 18.25 11.875 18.25H10.125C9.77982 18.25 9.5 17.9702 9.5 17.625V12.875H8.125C7.77982 12.875 7.5 12.5952 7.5 12.25V10.25C7.5 9.90482 7.77982 9.625 8.125 9.625H9.5V8.5C9.5 7.33968 9.96094 6.22688 10.7814 5.40641C11.6019 4.58594 12.7147 4.125 13.875 4.125H15.625C15.9702 4.125 16.25 4.40482 16.25 4.75V6.75C16.25 7.09518 15.9702 7.375 15.625 7.375H13.875C13.8418 7.375 13.8101 7.38817 13.7866 7.41161C13.7632 7.43505 13.75 7.46685 13.75 7.5V8.125H13.875Z" fill="white"/>
+      </svg>
+    ),
     title: "Download Facebook Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -44,7 +77,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   youtube: {
     name: "YouTube",
     slug: "youtube",
-    icon: <Youtube className={iconClass} style={{ color: "#FF0000" }} />,
+    icon: <PlatformIcon src="/assets/Youtube.svg" alt="YouTube" />,
     title: "Download YouTube Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -55,7 +88,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   instagram: {
     name: "Instagram",
     slug: "instagram",
-    icon: <Instagram className={iconClass} style={{ color: "#E1306C" }} />,
+    icon: <PlatformIcon src="/assets/Instagram.svg" alt="Instagram" />,
     title: "Download Instagram Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -66,11 +99,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   tiktok: {
     name: "TikTok",
     slug: "tiktok",
-    icon: (
-      <svg className={iconClass} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 0010.86 4.46V13.2a8.28 8.28 0 005.58 2.15V11.9a4.83 4.83 0 01-3.77-1.85V6.69h3.77z" />
-      </svg>
-    ),
+    icon: <PlatformIcon src="/assets/Tik Tok.svg" alt="TikTok" />,
     title: "Download TikTok Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -81,11 +110,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   snapchat: {
     name: "Snapchat",
     slug: "snapchat",
-    icon: (
-      <svg className={iconClass} viewBox="0 0 24 24" fill="#FFFC00">
-        <path d="M12.2 2c3.2 0 5.2 2.2 5.4 5.8v1.5c.8.1 1.5.5 1.5.9 0 .5-.7.9-1.6 1-.2 1.6-1.2 3.1-2.7 4 .1.4-.1 1-.7 1.3-.7.3-1.4.4-1.9.8-.5.5-.5 1.2-2.2 1.2s-1.7-.7-2.2-1.2c-.5-.4-1.2-.5-1.9-.8-.6-.3-.8-.9-.7-1.3-1.5-.9-2.5-2.4-2.7-4-.9-.1-1.6-.5-1.6-1 0-.4.7-.8 1.5-.9V7.8C3 4.3 5.4 2 8.5 2h3.7z" />
-      </svg>
-    ),
+    icon: <SnapchatIcon />,
     title: "Download Snapchat Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -96,7 +121,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   twitter: {
     name: "Twitter / X",
     slug: "twitter",
-    icon: <Twitter className={iconClass} style={{ color: "#1DA1F2" }} />,
+    icon: <PlatformIcon src="/assets/Twitter.svg" alt="Twitter / X" />,
     title: "Download Twitter Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -107,7 +132,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   linkedin: {
     name: "LinkedIn",
     slug: "linkedin",
-    icon: <Linkedin className={iconClass} style={{ color: "#0A66C2" }} />,
+    icon: <PlatformIcon src="/assets/Linkedin.svg" alt="LinkedIn" />,
     title: "Download LinkedIn Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -119,8 +144,9 @@ export const platformConfigs: Record<string, PlatformConfig> = {
     name: "Pinterest",
     slug: "pinterest",
     icon: (
-      <svg className={iconClass} viewBox="0 0 24 24" fill="#E60023">
-        <path d="M12 2C6.5 2 2 6.5 2 12c0 4.1 2.5 7.6 6 9.2-.1-.7-.1-1.9 0-2.7.1-.7.9-4.8.9-4.8s-.2-.5-.2-1.2c0-1.1.6-1.9 1.4-1.9.7 0 1 .5 1 1.1 0 .7-.4 1.7-.7 2.6-.2.7.4 1.3 1.1 1.3 1.3 0 2.3-1.4 2.3-3.4 0-1.8-1.3-3-3.1-3-2.1 0-3.4 1.6-3.4 3.2 0 .6.2 1.3.5 1.6.1.1.1.2.1.3 0 .1-.1.5-.2.7 0 .1-.1.2-.3.1-1-.5-1.6-1.9-1.6-3.1 0-2.5 1.8-4.8 5.2-4.8 2.7 0 4.9 2 4.9 4.6 0 2.7-1.7 4.9-4.1 4.9-.8 0-1.6-.4-1.8-.9l-.5 1.9c-.2.7-.7 1.6-1 2.1.8.2 1.6.4 2.4.4 5.5 0 10-4.5 10-10S17.5 2 12 2z" />
+      <svg className={iconClass} viewBox="0 0 24 24" fill="none">
+        <rect width="24" height="24" rx="12" fill="#E60023"/>
+        <path d="M12 5C8.13 5 5 8.13 5 12c0 2.87 1.75 5.32 4.2 6.44-.06-.49-.06-1.33 0-1.89.07-.49.63-3.36.63-3.36s-.14-.35-.14-.84c0-.77.42-1.33.98-1.33.49 0 .7.35.7.77 0 .49-.28 1.19-.49 1.82-.14.49.28.91.77.91.91 0 1.61-.98 1.61-2.38 0-1.26-.91-2.1-2.17-2.1-1.47 0-2.38 1.12-2.38 2.24 0 .42.14.91.35 1.12.07.07.07.14.07.21 0 .07-.07.35-.14.49 0 .07-.07.14-.21.07-.7-.35-1.12-1.33-1.12-2.17 0-1.75 1.26-3.36 3.64-3.36 1.89 0 3.43 1.4 3.43 3.22 0 1.89-1.19 3.43-2.87 3.43-.56 0-1.12-.28-1.26-.63l-.35 1.33c-.14.49-.49 1.12-.7 1.47.56.14 1.12.28 1.68.28 3.85 0 7-3.15 7-7S15.87 5 12 5z" fill="white"/>
       </svg>
     ),
     title: "Download Pinterest Content in Seconds",
@@ -133,11 +159,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   reddit: {
     name: "Reddit",
     slug: "reddit",
-    icon: (
-      <svg className={iconClass} viewBox="0 0 24 24" fill="#FF4500">
-        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm5.8 11.3c0 .1 0 .3-.1.4 0 2.6-3 4.7-6.7 4.7s-6.7-2.1-6.7-4.7c0-.1 0-.3.1-.4-.4-.3-.6-.8-.6-1.3 0-1 .8-1.7 1.7-1.7.5 0 .9.2 1.2.5 1.2-.8 2.8-1.4 4.5-1.4l.8-3.9c0-.2.2-.3.4-.2l2.7.6c.2-.4.6-.7 1.1-.7.7 0 1.2.5 1.2 1.2s-.5 1.2-1.2 1.2-1.2-.5-1.2-1.2l-2.4-.5-.7 3.5c1.7 0 3.2.5 4.4 1.4.3-.3.7-.5 1.2-.5.9 0 1.7.8 1.7 1.7 0 .5-.3 1-.6 1.3zM9.3 13c-.7 0-1.2.5-1.2 1.2s.5 1.2 1.2 1.2 1.2-.5 1.2-1.2-.6-1.2-1.2-1.2zm5.4 0c-.7 0-1.2.5-1.2 1.2s.5 1.2 1.2 1.2 1.2-.5 1.2-1.2-.6-1.2-1.2-1.2zm-5.1 3.6c.3.3.9.7 2.4.7s2.1-.4 2.4-.7c.2-.2.4-.2.6 0 .2.2.2.4 0 .6-.4.4-1.3.9-3 .9s-2.6-.5-3-.9c-.2-.2-.2-.5 0-.6.2-.2.4-.2.6 0z" />
-      </svg>
-    ),
+    icon: <PlatformIcon src="/assets/Reddit.svg" alt="Reddit" />,
     title: "Download Reddit Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -148,11 +170,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   tumblr: {
     name: "Tumblr",
     slug: "tumblr",
-    icon: (
-      <svg className={iconClass} viewBox="0 0 24 24" fill="#36465D">
-        <path d="M14.6 20.1c-2.9 0-4.8-1.5-4.8-5v-5H7.5V7.8c2.7-.7 3.8-3.1 4-5.3h2.5v4.8h3.4v2.8H14v4.6c0 1.4.7 1.9 1.8 1.9h1.8v3.5h-3z" />
-      </svg>
-    ),
+    icon: <PlatformIcon src="/assets/Tumbler.svg" alt="Tumblr" />,
     title: "Download Tumblr Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -163,7 +181,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   twitch: {
     name: "Twitch",
     slug: "twitch",
-    icon: <Tv className={iconClass} style={{ color: "#9146FF" }} />,
+    icon: <PlatformIcon src="/assets/Twitch.svg" alt="Twitch" />,
     title: "Download Twitch Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -174,11 +192,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   vimeo: {
     name: "Vimeo",
     slug: "vimeo",
-    icon: (
-      <svg className={iconClass} viewBox="0 0 24 24" fill="#1AB7EA">
-        <path d="M22 7.4c-.1 2.1-1.6 5-4.4 8.7C14.7 20 12.3 22 10.3 22c-1.2 0-2.3-1.1-3.1-3.4-.6-2-1.1-4-1.7-6-.6-2.3-1.3-3.4-2-3.4-.2 0-.7.3-1.5.9L1 8.8c1-.9 2-1.7 2.9-2.6C5.3 5 6.4 4.3 7.1 4.3c1.5-.1 2.4.9 2.7 3 .4 2.3.6 3.7.8 4.3.4 2 .9 3 1.5 3 .4 0 1.1-.7 1.9-2 .8-1.3 1.3-2.4 1.3-3.1.1-1.2-.3-1.8-1.3-1.8-.5 0-1 .1-1.5.3 1-3.2 2.8-4.8 5.6-4.7 2 .1 3 1.4 2.9 3.9z" />
-      </svg>
-    ),
+    icon: <PlatformIcon src="/assets/Vimeo.svg" alt="Vimeo" />,
     title: "Download Vimeo Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -189,7 +203,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   vk: {
     name: "VK (VKontakte)",
     slug: "vk",
-    icon: <Globe className={iconClass} style={{ color: "#4680C2" }} />,
+    icon: <PlatformIcon src="/assets/Vkontakte.svg" alt="VK" />,
     title: "Download VK Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -200,7 +214,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   soundcloud: {
     name: "SoundCloud",
     slug: "soundcloud",
-    icon: <Music className={iconClass} style={{ color: "#FF5500" }} />,
+    icon: <PlatformIcon src="/assets/Soundcloud.svg" alt="SoundCloud" />,
     title: "Download SoundCloud Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -211,7 +225,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   telegram: {
     name: "Telegram",
     slug: "telegram",
-    icon: <Send className={iconClass} style={{ color: "#26A5E4" }} />,
+    icon: <PlatformIcon src="/assets/Telegram.svg" alt="Telegram" />,
     title: "Download Telegram Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -222,7 +236,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   threads: {
     name: "Threads",
     slug: "threads",
-    icon: <MessageCircle className={iconClass} style={{ color: "#000000" }} />,
+    icon: <PlatformIcon src="/assets/figma/7-368/imgImage8.png" alt="Threads" className={documentIconClass} />,
     title: "Download Threads Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -235,7 +249,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   scribd: {
     name: "Scribd",
     slug: "scribd",
-    icon: <FileText className={iconClass} style={{ color: "#1A7BBA" }} />,
+    icon: <PlatformIcon src="/assets/figma/7-368/imgImage10.png" alt="Scribd" className={documentIconClass} />,
     title: "Download Scribd Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -246,7 +260,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   slideshare: {
     name: "SlideShare",
     slug: "slideshare",
-    icon: <Presentation className={iconClass} style={{ color: "#0077B5" }} />,
+    icon: <PlatformIcon src="/assets/figma/7-368/imgImage6.png" alt="SlideShare" className={documentIconClass} />,
     title: "Download SlideShare Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -257,7 +271,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   issuu: {
     name: "Issuu",
     slug: "issuu",
-    icon: <BookOpen className={iconClass} style={{ color: "#F36D21" }} />,
+    icon: <PlatformIcon src="/assets/figma/7-368/imgImage5.png" alt="Issuu" className={documentIconClass} />,
     title: "Download Issuu Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -268,7 +282,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   calameo: {
     name: "Calameo",
     slug: "calameo",
-    icon: <FileText className={iconClass} style={{ color: "#009B3A" }} />,
+    icon: <PlatformIcon src="/assets/figma/7-368/imgImage12.png" alt="Calameo" className={documentIconClass} />,
     title: "Download Calameo Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -279,7 +293,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   yumpu: {
     name: "Yumpu",
     slug: "yumpu",
-    icon: <BookOpen className={iconClass} style={{ color: "#FF6600" }} />,
+    icon: <PlatformIcon src="/assets/figma/7-368/imgImage11.png" alt="Yumpu" className={documentIconClass} />,
     title: "Download Yumpu Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",
@@ -290,7 +304,7 @@ export const platformConfigs: Record<string, PlatformConfig> = {
   slideserve: {
     name: "SlideServe",
     slug: "slideserve",
-    icon: <Presentation className={iconClass} style={{ color: "#00A4E4" }} />,
+    icon: <PlatformIcon src="/assets/Speech Balloon.png" alt="SlideServe" className={documentIconContainClass} />,
     title: "Download SlideServe Content in Seconds",
     description:
       "Access high-quality downloads from multiple platforms by simply pasting your URL.",

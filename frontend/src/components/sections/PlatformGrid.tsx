@@ -1,48 +1,34 @@
 "use client";
 
-import {
-  Instagram,
-  Youtube,
-  Twitter,
-  Facebook,
-  Linkedin,
-  Music,
-  Send,
-  MessageCircle,
-  Tv,
-  Camera,
-  Globe,
-  FileText,
-  Presentation,
-  BookOpen,
-} from "lucide-react";
 import SectionHeader from "./SectionHeader";
 import { useTranslation } from "@/lib/i18n";
+import { platformConfigs } from "@/lib/platforms";
 
+// Get all platforms in display order
 const platforms = [
-  { name: "Facebook", icon: <Facebook className="h-8 w-8" style={{ color: "#1877F2" }} /> },
-  { name: "YouTube", icon: <Youtube className="h-8 w-8" style={{ color: "#FF0000" }} /> },
-  { name: "Instagram", icon: <Instagram className="h-8 w-8" style={{ color: "#E1306C" }} /> },
-  { name: "Twitter / X", icon: <Twitter className="h-8 w-8" style={{ color: "#1DA1F2" }} /> },
-  { name: "TikTok", icon: <Music className="h-8 w-8" style={{ color: "#010101" }} /> },
-  { name: "Snapchat", icon: <Camera className="h-8 w-8" style={{ color: "#FFFC00" }} /> },
-  { name: "LinkedIn", icon: <Linkedin className="h-8 w-8" style={{ color: "#0A66C2" }} /> },
-  { name: "Pinterest", icon: <Globe className="h-8 w-8" style={{ color: "#E60023" }} /> },
-  { name: "Reddit", icon: <MessageCircle className="h-8 w-8" style={{ color: "#FF4500" }} /> },
-  { name: "Tumblr", icon: <Globe className="h-8 w-8" style={{ color: "#35465C" }} /> },
-  { name: "Twitch", icon: <Tv className="h-8 w-8" style={{ color: "#9146FF" }} /> },
-  { name: "Vimeo", icon: <Tv className="h-8 w-8" style={{ color: "#1AB7EA" }} /> },
-  { name: "VK", icon: <Globe className="h-8 w-8" style={{ color: "#4680C2" }} /> },
-  { name: "SoundCloud", icon: <Music className="h-8 w-8" style={{ color: "#FF5500" }} /> },
-  { name: "Telegram", icon: <Send className="h-8 w-8" style={{ color: "#0088CC" }} /> },
-  { name: "Threads", icon: <MessageCircle className="h-8 w-8" style={{ color: "#000000" }} /> },
-  { name: "Scribd", icon: <FileText className="h-8 w-8" style={{ color: "#1A7BBA" }} /> },
-  { name: "SlideShare", icon: <Presentation className="h-8 w-8" style={{ color: "#0077B5" }} /> },
-  { name: "Issuu", icon: <BookOpen className="h-8 w-8" style={{ color: "#F36D5D" }} /> },
-  { name: "Calameo", icon: <BookOpen className="h-8 w-8" style={{ color: "#3D6DAA" }} /> },
-  { name: "Yumpu", icon: <FileText className="h-8 w-8" style={{ color: "#D6113F" }} /> },
-  { name: "SlideServe", icon: <Presentation className="h-8 w-8" style={{ color: "#4A90D9" }} /> },
-];
+  "facebook",
+  "youtube",
+  "instagram",
+  "twitter",
+  "tiktok",
+  "snapchat",
+  "linkedin",
+  "pinterest",
+  "reddit",
+  "tumblr",
+  "twitch",
+  "vimeo",
+  "vk",
+  "soundcloud",
+  "telegram",
+  "threads",
+  "scribd",
+  "slideshare",
+  "issuu",
+  "calameo",
+  "yumpu",
+  "slideserve",
+].map((slug) => platformConfigs[slug]);
 
 export default function PlatformGrid() {
   const { t } = useTranslation();

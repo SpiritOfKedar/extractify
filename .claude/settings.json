@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "figma": {
+      "command": "npx",
+      "args": ["-y", "framelink-figma-mcp-server", "--figma-api-key=YOUR_FIGMA_TOKEN_HERE"]
+    }
+  }
+}
