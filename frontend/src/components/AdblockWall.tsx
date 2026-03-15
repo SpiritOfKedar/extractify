@@ -27,39 +27,53 @@ async function detectAdblock(): Promise<boolean> {
   // Method 1 — cosmetic / element hiding filter detection
   const baitElement = (): Promise<boolean> =>
     new Promise((resolve) => {
-      // Wrapper hides the bait from the user via clip, but keeps it in-flow
-      // so ad-blockers' cosmetic filters will detect and hide/remove it.
       const wrapper = document.createElement("div");
       wrapper.style.cssText =
         "position:absolute;top:0;left:0;width:0;height:0;overflow:hidden;pointer-events:none;z-index:-1;";
 
+      const baits: HTMLElement[] = [];
+
+      // Bait A — classic IAB banner dimensions + EasyList selectors
       const bait = document.createElement("div");
-      // IDs & classes that EasyList / uBlock cosmetic filters target
       bait.id = "ad_banner";
       bait.className =
         "ad-banner adsbox ad-placeholder textad banner_ad pub_300x250";
       bait.setAttribute("data-ad-slot", "1234567890");
       bait.setAttribute("data-ad-client", "ca-pub-1234567890");
-      // Standard IAB ad size so filter rules match dimension selectors
       bait.style.cssText =
         "width:300px;height:250px;background:transparent;";
+      baits.push(bait);
 
-      // Second bait element — targets Google AdSense-specific selectors
+      // Bait B — Google AdSense div
       const bait2 = document.createElement("div");
       bait2.className = "adsbygoogle";
       bait2.setAttribute("data-ad-slot", "test");
       bait2.style.cssText =
         "width:728px;height:90px;background:transparent;";
+      baits.push(bait2);
 
-      wrapper.appendChild(bait);
-      wrapper.appendChild(bait2);
+      // Bait C — additional selectors targeted by uBlock's default filters
+      const bait3 = document.createElement("div");
+      bait3.id = "google_ads_iframe_0";
+      bait3.className = "ad-wrapper sponsored-content ad-unit";
+      bait3.style.cssText = "width:160px;height:600px;background:transparent;";
+      baits.push(bait3);
+
+      // Bait D — ins tag matching adsbygoogle pattern
+      const bait4 = document.createElement("ins");
+      bait4.className = "adsbygoogle";
+      bait4.setAttribute("data-ad-format", "auto");
+      bait4.style.cssText =
+        "display:block;width:300px;height:250px;background:transparent;";
+      baits.push(bait4);
+
+      for (const b of baits) wrapper.appendChild(b);
       document.body.appendChild(wrapper);
 
       setTimeout(() => {
         let blocked = false;
-        for (const el of [bait, bait2]) {
+        for (const el of baits) {
           if (!document.body.contains(wrapper) || !wrapper.contains(el)) {
-            // The ad-blocker removed the element from the DOM entirely
             blocked = true;
             break;
           }
@@ -78,18 +92,16 @@ async function detectAdblock(): Promise<boolean> {
         }
         wrapper.remove();
         resolve(blocked);
-      }, 200);
+      }, 300);
     });
 
-  // Method 2 — network request to a well-known third-party ad-serving URL
-  // uBlock Origin Lite (MV3) blocks this via declarative net request rules.
+  // Method 2 — Google AdSense script load
   const baitScript = (): Promise<boolean> =>
     new Promise((resolve) => {
       const script = document.createElement("script");
       script.src =
         "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
       script.async = true;
-      // If the script loads => no adblocker. If error => blocked.
       script.onload = () => {
         script.remove();
         resolve(false);
@@ -99,18 +111,29 @@ async function detectAdblock(): Promise<boolean> {
         resolve(true);
       };
       document.head.appendChild(script);
-
-      // Safety timeout — if neither fires within 2 s, assume blocked
       setTimeout(() => {
         script.remove();
         resolve(true);
       }, 2000);
     });
 
-  // Method 3 — first-party fetch (catches broad "ads" path filters)
+  // Method 3 — first-party fetch for /ads.js
   const baitFetch = async (): Promise<boolean> => {
     try {
       const resp = await fetch("/ads.js", {
+        method: "HEAD",
+        cache: "no-store",
+      });
+      return !resp.ok;
+    } catch {
+      return true;
+    }
+  };
+
+  // Method 4 — first-party fetch for /ad-banner.js
+  const baitFetch2 = async (): Promise<boolean> => {
+    try {
+      const resp = await fetch("/ad-banner.js", {
         method: "HEAD",
         cache: "no-store",
       });
@@ -124,6 +147,7 @@ async function detectAdblock(): Promise<boolean> {
     baitElement(),
     baitScript(),
     baitFetch(),
+    baitFetch2(),
   ]);
 
   return results.some(Boolean);

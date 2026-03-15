@@ -514,11 +514,11 @@ export default function PlatformPage({ params }: PlatformPageProps) {
 
       {/* Content Preview / Result */}
       {downloadResult ? (
-        <div className="w-full max-w-[1238px] flex flex-col lg:flex-row gap-8">
-          {/* Preview area */}
-          <div className="flex-1 min-h-[414px] rounded-[20px] border border-border bg-card overflow-hidden flex items-center justify-center">
+        <div className="w-full max-w-[720px] flex flex-col gap-5">
+          {/* Preview area — full width on top */}
+          <div className="w-full rounded-[20px] border border-border bg-card overflow-hidden flex items-center justify-center">
             {isTextContentType ? (
-              <div className="w-full h-full min-h-[414px] bg-[#1a1a2e] p-6 overflow-auto">
+              <div className="w-full min-h-[240px] max-h-[400px] bg-[#1a1a2e] p-6 overflow-auto">
                 <div className="mb-3 flex items-center gap-2">
                   <svg className="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
@@ -537,7 +537,7 @@ export default function PlatformPage({ params }: PlatformPageProps) {
                 style={{ border: "none" }}
               />
             ) : isAudioContent ? (
-              <div className="w-full h-full min-h-[414px] flex flex-col bg-[#1a1a2e]">
+              <div className="w-full min-h-[280px] flex flex-col bg-[#1a1a2e]">
                 {/* Cover art */}
                 <div className="flex-1 flex items-center justify-center overflow-hidden">
                   {downloadResult.thumbnail_url ? (
@@ -572,31 +572,33 @@ export default function PlatformPage({ params }: PlatformPageProps) {
                   src={isHlsUrl(rawPreviewUrl || undefined) ? undefined : (previewUrl || undefined)}
                   controls
                   playsInline
-                  className="w-full h-full min-h-[414px] max-h-[500px] object-contain bg-black"
+                  className="w-full aspect-video object-contain bg-black"
                 />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={previewUrl}
                   alt={downloadResult.title || "Preview"}
-                  className="w-full h-full min-h-[414px] max-h-[500px] object-contain bg-black"
+                  className="w-full max-h-[400px] object-contain bg-black"
                 />
               )
             ) : (
-              <div className="w-full h-full min-h-[414px] bg-[#525659] flex items-center justify-center">
+              <div className="w-full min-h-[240px] bg-[#525659] flex items-center justify-center">
                 <p className="text-white/60 text-sm">{t("preview.noPreview")}</p>
               </div>
             )}
           </div>
 
-          {/* Details sidebar */}
-          <div className="lg:w-[478px] flex flex-col gap-4">
-            <h2 className="text-[20px] font-semibold text-foreground leading-7">
+          {/* Details section — below the preview */}
+          <div className="flex flex-col gap-3">
+            <h2 className="text-[18px] font-semibold text-foreground leading-6">
               {downloadResult.title || t("platform.extractedContent")}
             </h2>
-            <p className="text-[16px] font-medium text-text-muted leading-7">
-              {downloadResult.description || t("platform.noDescription")}
-            </p>
+            {downloadResult.description && (
+              <p className="text-[14px] font-medium text-text-muted leading-6 max-h-[84px] overflow-hidden">
+                {downloadResult.description}
+              </p>
+            )}
 
             {downloadResult.variants?.length > 1 && (
               <select
@@ -617,16 +619,12 @@ export default function PlatformPage({ params }: PlatformPageProps) {
               </select>
             )}
 
-            <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-4 text-[14px] font-medium text-text-muted">
               {fileSizeText && (
-                <p className="text-[14px] font-medium text-text-muted">
-                  {t("platform.fileSize")} : {fileSizeText}
-                </p>
+                <span>{t("platform.fileSize")}: {fileSizeText}</span>
               )}
               {(selectedVariant?.format || downloadResult.content_type) && (
-                <p className="text-[14px] font-medium text-text-muted">
-                  {t("platform.fileType")} : {selectedVariant?.format || downloadResult.content_type}
-                </p>
+                <span>{t("platform.fileType")}: {selectedVariant?.format || downloadResult.content_type}</span>
               )}
             </div>
             <a
@@ -636,7 +634,7 @@ export default function PlatformPage({ params }: PlatformPageProps) {
                   : "#"
               }
               download
-              className={`flex items-center justify-center w-full h-[40px] rounded-[33px] text-white text-[16px] font-medium transition-opacity ${
+              className={`flex items-center justify-center w-full h-[44px] rounded-[33px] text-white text-[16px] font-medium transition-opacity ${
                 hasSelectedDownload ? "bg-primary hover:opacity-90" : "bg-primary/50 pointer-events-none"
               }`}
             >
