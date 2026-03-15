@@ -38,7 +38,6 @@ const imgImage11 = "/assets/figma/7-368/imgImage11.png";
 const imgImage5 = "/assets/figma/7-368/imgImage5.png";
 const imgFrame2121453181 = "/assets/figma/7-368/imgFrame2121453181.png";
 const imgImage13 = "/assets/figma/7-368/imgImage13.png";
-const imgLine1 = "/assets/figma/7-368/imgLine1.svg";
 const imgCardSlash = "/assets/figma/7-368/imgCardSlash.svg";
 const imgGoogle = "/assets/figma/7-368/imgGoogle.svg";
 const imgTwitch = "/assets/figma/7-368/imgTwitch.svg";
@@ -85,9 +84,9 @@ function SolidGeneralClock({ className }: { className?: string }) {
 function SolidInterfaceCaretRight({ className }: { className?: string }) {
   return (
     <div className={className || "relative size-[24px]"} data-name="Solid/Interface/Caret right" data-node-id="16:571">
-      <div className="absolute inset-[30.21%_36.46%_30.21%_40.63%]" data-name="Icon" data-node-id="16:572">
-        <img alt="" className="absolute block max-w-none size-full" src={imgIcon3} />
-      </div>
+      <svg viewBox="0 0 24 24" className="block size-full text-white" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <path d="M10 7L15 12L10 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
     </div>
   );
 }
@@ -385,7 +384,7 @@ export default function Desktop() {
           )}
         </div>
         <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-full max-w-[1068px]" data-node-id="8:503">
-          <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-full max-w-[855px] px-4" data-node-id="7:370">
+          <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-full max-w-[855px] px-4 lg:px-0" data-node-id="7:370">
             <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[clamp(1.25rem,4vw,1.5rem)] w-full" data-node-id="7:371">
               Download in 3 Simple Steps
             </p>
@@ -401,11 +400,7 @@ export default function Desktop() {
                 </p>
                 <div className="absolute inset-0 pointer-events-none rounded-[inherit] shadow-[inset_2px_2px_4px_0px_rgba(155,150,167,0.25)]" />
               </div>
-              <div className="h-0 relative shrink-0 w-[296px]" data-node-id="8:493">
-                <div className="absolute inset-[-2px_0_0_0]">
-                  <img alt="" className="block max-w-none size-full" src={imgLine1} />
-                </div>
-              </div>
+              <div className="h-[2px] shrink-0 w-[296px] bg-[#e1dced]" data-node-id="8:493" />
             </div>
             <div className="content-stretch flex gap-[14px] items-center relative shrink-0" data-node-id="8:499">
               <div className="bg-white content-stretch flex flex-col items-center justify-center p-[8px] relative rounded-[31px] shrink-0 w-[40px]" data-node-id="8:489">
@@ -414,11 +409,7 @@ export default function Desktop() {
                 </p>
                 <div className="absolute inset-0 pointer-events-none rounded-[inherit] shadow-[inset_2px_2px_4px_0px_rgba(155,150,167,0.25)]" />
               </div>
-              <div className="h-0 relative shrink-0 w-[296px]" data-node-id="8:494">
-                <div className="absolute inset-[-2px_0_0_0]">
-                  <img alt="" className="block max-w-none size-full" src={imgLine1} />
-                </div>
-              </div>
+              <div className="h-[2px] shrink-0 w-[296px] bg-[#e1dced]" data-node-id="8:494" />
             </div>
             <div className="bg-white content-stretch flex flex-col items-center justify-center p-[8px] relative rounded-[31px] shrink-0 w-[40px]" data-node-id="8:491">
               <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[#2d2d2d] text-[20px] whitespace-nowrap" data-node-id="8:492">
@@ -1121,7 +1112,9 @@ export default function Desktop() {
             <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[16px] text-white whitespace-nowrap" data-node-id="6:351">
               Learn more about privacy
             </p>
-            <SolidInterfaceCaretRight className="relative shrink-0 size-[24px]" />
+            <svg viewBox="0 0 24 24" className="relative shrink-0 size-[18px] text-white" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+              <path d="M10 7L15 12L10 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
           <div className="lg:absolute content-stretch flex flex-col gap-[20px] items-start justify-center lg:left-[853.5px] p-[8px] lg:top-[39.5px] w-full lg:w-[288px]" data-node-id="16:581">
             <div className="content-stretch flex gap-[8px] items-center relative shrink-0 w-full" data-node-id="16:574">

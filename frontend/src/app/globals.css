@@ -56,7 +56,41 @@ canvas {
    =================================================== */
 
 .home-figma-page img.max-w-none {
-  max-width: none;
+  max-width: 100% !important;
+}
+
+/* Desktop-only icon containment for Figma-exported SVG layers */
+@media (min-width: 769px) {
+  .home-figma-page [data-name*="vuesax/linear/"],
+  .home-figma-page [data-name*="Outline/Status/"],
+  .home-figma-page [data-name*="Outline/Interface/"],
+  .home-figma-page [data-name*="Solid/Files/"],
+  .home-figma-page [data-name*="Outline/Brands/"],
+  .home-figma-page [data-name*="Social Media /"] {
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+  }
+
+  .home-figma-page [data-name*="vuesax/linear/"] [data-name="Icon"],
+  .home-figma-page [data-name*="Outline/Status/"] [data-name="Icon"],
+  .home-figma-page [data-name*="Outline/Interface/"] [data-name="Icon"],
+  .home-figma-page [data-name*="Solid/Files/"] [data-name="Icon"],
+  .home-figma-page [data-name*="Outline/Brands/"] [data-name="Icon"] {
+    overflow: hidden !important;
+  }
+
+  .home-figma-page [data-name*="vuesax/linear/"] img,
+  .home-figma-page [data-name*="Outline/Status/"] img,
+  .home-figma-page [data-name*="Outline/Interface/"] img,
+  .home-figma-page [data-name*="Solid/Files/"] img,
+  .home-figma-page [data-name*="Outline/Brands/"] img,
+  .home-figma-page [data-name*="Social Media /"] img {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+    object-fit: contain !important;
+  }
 }
 
 /* But on mobile, constrain ALL images inside icon wrappers */
@@ -793,6 +827,76 @@ canvas {
   .home-figma-page [data-node-id="10:90"],
   .home-figma-page [data-node-id="10:91"] {
     display: flex !important;
+  }
+
+  /* Desktop fidelity for Download in 3 Simple Steps */
+  .home-figma-page [data-node-id="8:503"] {
+    width: 100% !important;
+    max-width: 1068px !important;
+    gap: 40px !important;
+  }
+
+  .home-figma-page [data-node-id="8:376"] {
+    width: 100% !important;
+    max-width: 1068px !important;
+    gap: 24px !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+  }
+
+  .home-figma-page [data-node-id="8:376"] > div {
+    min-width: 0 !important;
+  }
+
+  .home-figma-page [data-node-id="8:376"] ul {
+    margin: 0 !important;
+  }
+
+  .home-figma-page [data-node-id="8:376"] li span {
+    line-height: 24px !important;
+  }
+
+  /* Desktop fidelity for More Reasons section */
+  .home-figma-page [data-node-id="50:551"] {
+    align-items: stretch !important;
+    justify-content: center !important;
+    gap: 20px !important;
+  }
+
+  .home-figma-page [data-node-id="50:465"],
+  .home-figma-page [data-node-id="50:525"] {
+    width: 604px !important;
+    min-width: 604px !important;
+  }
+
+  .home-figma-page [data-node-id="50:467"],
+  .home-figma-page [data-node-id="50:517"],
+  .home-figma-page [data-node-id="50:474"],
+  .home-figma-page [data-node-id="50:527"],
+  .home-figma-page [data-node-id="50:534"],
+  .home-figma-page [data-node-id="50:541"] {
+    display: grid !important;
+    grid-template-columns: 33px minmax(0, 1fr) !important;
+    column-gap: 16px !important;
+    align-items: start !important;
+    overflow: hidden !important;
+  }
+
+  .home-figma-page [data-node-id="50:467"] { min-height: 155px !important; }
+  .home-figma-page [data-node-id="50:517"] { min-height: 155px !important; }
+  .home-figma-page [data-node-id="50:474"] { min-height: 180px !important; }
+  .home-figma-page [data-node-id="50:527"] { min-height: 131px !important; }
+  .home-figma-page [data-node-id="50:534"] { min-height: 131px !important; }
+  .home-figma-page [data-node-id="50:541"] { min-height: 134px !important; }
+
+  .home-figma-page [data-node-id="50:470"],
+  .home-figma-page [data-node-id="50:520"],
+  .home-figma-page [data-node-id="50:477"],
+  .home-figma-page [data-node-id="50:530"],
+  .home-figma-page [data-node-id="50:537"],
+  .home-figma-page [data-node-id="50:544"] {
+    min-width: 0 !important;
+    width: 100% !important;
   }
 }
 
