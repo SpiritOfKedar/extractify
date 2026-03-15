@@ -898,6 +898,36 @@ canvas {
     min-width: 0 !important;
     width: 100% !important;
   }
+
+  /* Benefits section: center card preview must fill remaining card space */
+  .home-figma-page [data-node-id="27:735"] {
+    align-items: stretch !important;
+  }
+
+  .home-figma-page [data-node-id="27:735"] [data-node-id="29:257"] {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    aspect-ratio: auto !important;
+    align-self: stretch !important;
+  }
+
+  .home-figma-page [data-node-id="27:735"] [data-node-id="29:257"] > div {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .home-figma-page [data-node-id="27:735"] [data-node-id="29:257"] img {
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    object-fit: cover !important;
+  }
 }
 
 /* ===================================================
