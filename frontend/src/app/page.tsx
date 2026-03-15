@@ -47,9 +47,6 @@ const imgTickCircle = "/assets/figma/7-368/imgTickCircle.svg";
 const imgTickCircle1 = "/assets/figma/7-368/imgTickCircle1.svg";
 const imgVector6 = "/assets/figma/7-368/imgVector6.svg";
 const imgGroup4 = "/assets/figma/7-368/imgGroup4.svg";
-const imgIcon8 = "/assets/figma/7-368/imgIcon8.svg";
-const imgIcon9 = "/assets/figma/7-368/imgIcon9.svg";
-const imgStar1 = "/assets/figma/7-368/imgStar1.svg";
 const imgIcon10 = "/assets/figma/7-368/imgIcon10.svg";
 const imgIcon11 = "/assets/figma/7-368/imgIcon11.svg";
 const imgIcon12 = "/assets/figma/7-368/imgIcon12.svg";
@@ -301,6 +298,48 @@ function SolidFilesClipboardAlt({ className }: { className?: string }) {
 export default function Desktop() {
   const router = useRouter();
   const [inputError, setInputError] = useState<string | null>(null);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number>(0);
+
+  const faqItems = [
+    {
+      question: "Is this social media downloader free to use?",
+      answer:
+        "Yes, our platform is completely free to use. You can download videos, photos, reels, and other content from multiple social media platforms without paying any fees or purchasing a subscription. There are no hidden charges, and you can enjoy unlimited downloads anytime.",
+    },
+    {
+      question: "Do I need to create an account to download content?",
+      answer:
+        "No account is required. You can paste your link and download directly without signing up or sharing personal information.",
+    },
+    {
+      question: "Is it safe to use this downloader?",
+      answer:
+        "Yes. We do not ask for login credentials and we do not store your download links or history, so your activity stays private.",
+    },
+    {
+      question: "What platforms are supported?",
+      answer:
+        "The platform supports a wide range of social media sources including short video, photo, and post-based platforms, all in one place.",
+    },
+    {
+      question: "Can I download content in high quality?",
+      answer:
+        "Yes. When high-quality options are available from the source, you can choose and download the best quality provided.",
+    },
+    {
+      question: "Why is my download not working?",
+      answer:
+        "This usually happens when a link is private, restricted, expired, or temporarily unavailable. Recheck the link and try again.",
+    },
+  ];
+
+  const comparisonRows = [
+    { feature: "Cost to Use", brand: "100% Free", other: "Subscription or hidden fees" },
+    { feature: "Supported Platforms", brand: "22 Platforms", other: "Limited platforms" },
+    { feature: "Download Categories", brand: "All Content Types Available", other: "Limited options" },
+    { feature: "Download Speed", brand: "Fast Processing", other: "Slower or inconsistent" },
+    { feature: "Reliability", brand: "High Success Rate", other: "Download failures possible" },
+  ];
 
   const handleLandingSubmit = (url: string) => {
     const slug = detectPlatformSlugFromUrl(url);
@@ -320,21 +359,21 @@ export default function Desktop() {
   };
 
   return (
-    <div className="bg-[#f4f1f8] content-stretch flex items-start justify-center overflow-x-auto pt-[52px] relative w-full min-h-screen" data-name="Desktop - 4" data-node-id="7:368">
-      <div className="content-stretch flex flex-col gap-[120px] items-center relative shrink-0 w-[1440px] min-w-[1440px]" data-node-id="35:319">
-        <div className="content-stretch flex flex-col gap-[20px] items-center relative shrink-0 w-[1068px]" data-node-id="landing:hero">
-          <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-[1068px]">
-            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-normal min-w-full relative shrink-0 text-[#2d2d2d] text-[24px] sm:text-[32px] whitespace-nowrap w-[min-content]">
+    <div className="home-figma-page bg-[#f4f1f8] content-stretch flex items-start justify-center overflow-x-hidden pt-[52px] relative w-full min-h-screen" data-name="Desktop - 4" data-node-id="7:368">
+      <div className="content-stretch flex flex-col gap-[60px] md:gap-[80px] lg:gap-[120px] items-center relative shrink-0 w-full max-w-[1440px] min-w-0 px-4 md:px-6 lg:px-0" data-node-id="35:319">
+        <div className="content-stretch flex flex-col gap-[20px] items-center relative shrink-0 w-full max-w-[1068px]" data-node-id="landing:hero">
+          <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-full max-w-[1068px]">
+            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-normal min-w-0 relative shrink-0 text-[#2d2d2d] text-[clamp(1.25rem,5vw,2rem)] w-full">
               Download Anything from Your Favorite Social Platforms
             </p>
-            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] sm:leading-[28px] relative shrink-0 text-[#404040] text-[16px] sm:text-[20px] w-[431px]">
+            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] sm:leading-[28px] relative shrink-0 text-[#404040] text-[16px] sm:text-[20px] w-full max-w-[431px]">
               Access high-quality downloads from multiple platforms by simply pasting your URL.
             </p>
           </div>
-          <div className="w-full flex justify-center">
+          <div className="w-full flex justify-center px-2">
             <UrlInput onSubmit={handleLandingSubmit} />
           </div>
-          <div className="bg-[#f8f8f8] border border-[#e5e5e5] content-stretch flex items-center justify-center h-[293px] relative rounded-[16px] shrink-0 w-[620px]">
+          <div className="bg-[#f8f8f8] border border-[#e5e5e5] content-stretch flex items-center justify-center h-auto min-h-[200px] md:h-[293px] relative rounded-[16px] shrink-0 w-full max-w-[620px] aspect-video md:aspect-auto">
             <p className="font-['Inter:Medium',sans-serif] font-medium leading-[40px] not-italic text-[#aaaaaa] text-[16px] text-center w-[332px]">
               After the link is pasted it will showcase here what the user is downloading
             </p>
@@ -345,16 +384,16 @@ export default function Desktop() {
             </p>
           )}
         </div>
-        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-[1068px]" data-node-id="8:503">
-          <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-[855px]" data-node-id="7:370">
-            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] min-w-full relative shrink-0 text-[#2d2d2d] text-[24px] w-[min-content]" data-node-id="7:371">
+        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-full max-w-[1068px]" data-node-id="8:503">
+          <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-full max-w-[855px] px-4" data-node-id="7:370">
+            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[clamp(1.25rem,4vw,1.5rem)] w-full" data-node-id="7:371">
               Download in 3 Simple Steps
             </p>
-            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-[340px]" data-node-id="7:372">
+            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-full max-w-[340px]" data-node-id="7:372">
               Follow a few quick steps to download your favorite content directly to your device.
             </p>
           </div>
-          <div className="content-stretch flex gap-[14px] items-center justify-center relative shrink-0" data-node-id="8:500">
+          <div className="hidden lg:flex content-stretch gap-[14px] items-center justify-center relative shrink-0" data-node-id="8:500">
             <div className="content-stretch flex gap-[14px] items-center relative shrink-0" data-node-id="8:497">
               <div className="bg-white content-stretch flex flex-col items-center justify-center p-[8px] relative rounded-[31px] shrink-0 w-[40px]" data-node-id="8:488">
                 <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[#2d2d2d] text-[20px] whitespace-nowrap" data-node-id="8:487">
@@ -388,8 +427,8 @@ export default function Desktop() {
               <div className="absolute inset-0 pointer-events-none rounded-[inherit] shadow-[inset_2px_2px_4px_0px_rgba(155,150,167,0.25)]" />
             </div>
           </div>
-          <div className="content-stretch flex gap-[24px] items-start justify-center relative shrink-0 w-full" data-node-id="8:376">
-            <div className="bg-white content-stretch flex flex-col gap-[20px] items-start justify-center px-[40px] py-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-[340px]" data-node-id="8:377">
+          <div className="content-stretch flex flex-col lg:flex-row gap-[16px] lg:gap-[24px] items-stretch lg:items-start justify-center relative shrink-0 w-full px-4 lg:px-0" data-node-id="8:376">
+            <div className="bg-white content-stretch flex flex-col gap-[20px] items-start justify-center px-[24px] lg:px-[40px] py-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full lg:w-[340px]" data-node-id="8:377">
               <div className="bg-[#f2edfe] content-stretch flex items-center justify-center p-[4px] relative rounded-[8px] shrink-0 size-[48px]" data-name="vuesax/linear/sun" data-node-id="8:378">
                 <SolidFilesCopy className="relative shrink-0 size-[25px]" />
               </div>
@@ -410,7 +449,7 @@ export default function Desktop() {
                 </ul>
               </div>
             </div>
-            <div className="bg-white content-stretch flex flex-col gap-[20px] items-start justify-center px-[40px] py-[24px] relative rounded-[16px] self-stretch shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-[340px]" data-node-id="8:397">
+            <div className="bg-white content-stretch flex flex-col gap-[20px] items-start justify-center px-[24px] lg:px-[40px] py-[24px] relative rounded-[16px] self-stretch shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full lg:w-[340px]" data-node-id="8:397">
               <div className="bg-[#f2edfe] content-stretch flex items-center justify-center p-[4px] relative rounded-[8px] shrink-0 size-[48px]" data-name="vuesax/linear/sun" data-node-id="8:438">
                 <SolidFilesClipboardAlt className="relative shrink-0 size-[25px]" />
               </div>
@@ -431,7 +470,7 @@ export default function Desktop() {
                 </ul>
               </div>
             </div>
-            <div className="bg-white content-stretch flex flex-col gap-[20px] items-start justify-center px-[40px] py-[24px] relative rounded-[16px] self-stretch shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-[340px]" data-node-id="8:417">
+            <div className="bg-white content-stretch flex flex-col gap-[20px] items-start justify-center px-[24px] lg:px-[40px] py-[24px] relative rounded-[16px] self-stretch shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full lg:w-[340px]" data-node-id="8:417">
               <div className="bg-[#f2edfe] content-stretch flex items-center justify-center p-[4px] relative rounded-[8px] shrink-0 size-[48px]" data-name="vuesax/linear/sun" data-node-id="8:455">
                 <SolidFilesDownload className="relative shrink-0 size-[25px]" />
               </div>
@@ -454,17 +493,17 @@ export default function Desktop() {
             </div>
           </div>
         </div>
-        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-[1155px]" data-node-id="10:349">
-          <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-[855px]" data-node-id="10:72">
-            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] min-w-full relative shrink-0 text-[#2d2d2d] text-[24px] w-[min-content]" data-node-id="10:73">
+        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-full max-w-[1155px] px-4 lg:px-0" data-node-id="10:349">
+          <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-full max-w-[855px]" data-node-id="10:72">
+            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[clamp(1.25rem,4vw,1.5rem)] w-full" data-node-id="10:73">
               Our Platform Overview
             </p>
-            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-[519px]" data-node-id="10:77">
+            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-full max-w-[519px]" data-node-id="10:77">
               Save your favorite online media in seconds with a fast, efficient, and easy-to-use downloader that works across multiple platforms.
             </p>
           </div>
-          <div className="content-stretch flex gap-[155px] items-center justify-center relative shrink-0 w-full" data-node-id="10:93">
-            <div className="content-stretch flex flex-col font-['Inter:Regular',sans-serif] font-normal gap-[15px] items-start leading-[28px] not-italic relative shrink-0 text-[#404040] text-[16px] w-[612px]" data-node-id="10:76">
+          <div className="content-stretch flex flex-col lg:flex-row gap-[24px] lg:gap-[155px] items-center justify-center relative shrink-0 w-full" data-node-id="10:93">
+            <div className="content-stretch flex flex-col font-['Inter:Regular',sans-serif] font-normal gap-[15px] items-start leading-[28px] not-italic relative shrink-0 text-[#404040] text-[16px] w-full lg:w-[612px]" data-node-id="10:76">
               <p className="relative shrink-0 w-full" data-node-id="10:74">
                 Our platform is an all-in-one social media downloader designed to help users save their favorite online content quickly and effortlessly. Whether you want to download videos, reels, photos, carousels, or posts, our tool makes the process simple by allowing you to paste a link and get instant results in high quality.
               </p>
@@ -472,40 +511,40 @@ export default function Desktop() {
                 We focus on delivering a fast, user-friendly, and reliable downloading experience across multiple platforms, ensuring compatibility with different devices including smartphones, tablets, and desktops. With advanced processing technology, users can enjoy smooth performance, unlimited downloads, and high-speed conversions without unnecessary steps or complications.
               </p>
             </div>
-            <div className="flex flex-row items-center self-stretch">
-              <div className="content-stretch flex gap-[20px] h-full items-center leading-[28px] not-italic relative shrink-0" data-node-id="10:92">
-                <div className="content-stretch flex flex-col gap-[20px] h-full items-center justify-center relative shrink-0" data-node-id="10:90">
-                  <div className="bg-[#ece8f5] content-stretch flex flex-[1_0_0] flex-col gap-[8px] items-start justify-center min-h-px min-w-px p-[20px] relative rounded-[12px] w-[184px]" data-node-id="10:80">
-                    <p className="font-['Inter:Bold',sans-serif] font-bold relative shrink-0 text-[#2d2d2d] text-[40px] whitespace-nowrap" data-node-id="10:79">
+            <div className="flex flex-row items-center self-stretch w-full lg:w-auto">
+              <div className="grid grid-cols-2 gap-4 lg:gap-5 w-full lg:flex lg:flex-row" data-node-id="10:92">
+                <div className="contents lg:flex lg:flex-col lg:gap-[20px] lg:h-full lg:items-center lg:justify-center" data-node-id="10:90">
+                  <div className="bg-[#ece8f5] content-stretch flex flex-col gap-[8px] items-start justify-center p-4 lg:p-[20px] relative rounded-[12px] w-full lg:w-[184px]" data-node-id="10:80">
+                    <p className="font-['Inter:Bold',sans-serif] font-bold relative shrink-0 text-[#2d2d2d] text-[clamp(1.5rem,5vw,2.5rem)]" data-node-id="10:79">
                       200k+
                     </p>
-                    <p className="font-['Inter:Regular',sans-serif] font-normal min-w-full relative shrink-0 text-[16px] text-black w-[min-content]" data-node-id="10:78">
+                    <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[16px] text-black" data-node-id="10:78">
                       Happy users
                     </p>
                   </div>
-                  <div className="bg-[#ece8f5] content-stretch flex flex-[1_0_0] flex-col gap-[8px] items-start justify-center min-h-px min-w-px p-[20px] relative rounded-[12px] w-[184px]" data-node-id="10:84">
-                    <p className="font-['Inter:Bold',sans-serif] font-bold min-w-full relative shrink-0 text-[#2d2d2d] text-[40px] w-[min-content]" data-node-id="10:85">
+                  <div className="bg-[#ece8f5] content-stretch flex flex-col gap-[8px] items-start justify-center p-4 lg:p-[20px] relative rounded-[12px] w-full lg:w-[184px]" data-node-id="10:84">
+                    <p className="font-['Inter:Bold',sans-serif] font-bold relative shrink-0 text-[#2d2d2d] text-[clamp(1.5rem,5vw,2.5rem)]" data-node-id="10:85">
                       99%
                     </p>
-                    <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[16px] text-black whitespace-nowrap" data-node-id="10:86">
+                    <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[16px] text-black" data-node-id="10:86">
                       Success Rate
                     </p>
                   </div>
                 </div>
-                <div className="content-stretch flex flex-col gap-[20px] h-full items-center justify-center relative shrink-0" data-node-id="10:91">
-                  <div className="bg-[#ece8f5] content-stretch flex flex-[1_0_0] flex-col gap-[8px] items-start justify-center min-h-px min-w-px p-[20px] relative rounded-[12px] w-[184px]" data-node-id="10:81">
-                    <p className="font-['Inter:Bold',sans-serif] font-bold min-w-full relative shrink-0 text-[#2d2d2d] text-[40px] w-[min-content]" data-node-id="10:82">
+                <div className="contents lg:flex lg:flex-col lg:gap-[20px] lg:h-full lg:items-center lg:justify-center" data-node-id="10:91">
+                  <div className="bg-[#ece8f5] content-stretch flex flex-col gap-[8px] items-start justify-center p-4 lg:p-[20px] relative rounded-[12px] w-full lg:w-[184px]" data-node-id="10:81">
+                    <p className="font-['Inter:Bold',sans-serif] font-bold relative shrink-0 text-[#2d2d2d] text-[clamp(1.5rem,5vw,2.5rem)]" data-node-id="10:82">
                       3M+
                     </p>
-                    <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[16px] text-black whitespace-nowrap" data-node-id="10:83">
+                    <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[16px] text-black" data-node-id="10:83">
                       Files Downloaded
                     </p>
                   </div>
-                  <div className="bg-[#ece8f5] content-stretch flex flex-[1_0_0] flex-col gap-[8px] items-start justify-center min-h-px min-w-px p-[20px] relative rounded-[12px] w-full" data-node-id="10:87">
-                    <p className="font-['Inter:Bold',sans-serif] font-bold min-w-full relative shrink-0 text-[#2d2d2d] text-[40px] w-[min-content]" data-node-id="10:88">
+                  <div className="bg-[#ece8f5] content-stretch flex flex-col gap-[8px] items-start justify-center p-4 lg:p-[20px] relative rounded-[12px] w-full lg:w-[184px]" data-node-id="10:87">
+                    <p className="font-['Inter:Bold',sans-serif] font-bold relative shrink-0 text-[#2d2d2d] text-[clamp(1.5rem,5vw,2.5rem)]" data-node-id="10:88">
                       120+
                     </p>
-                    <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[16px] text-black whitespace-nowrap" data-node-id="10:89">
+                    <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[16px] text-black" data-node-id="10:89">
                       Countries Reached
                     </p>
                   </div>
@@ -514,17 +553,17 @@ export default function Desktop() {
             </div>
           </div>
         </div>
-        <div className="content-stretch flex flex-col gap-[40px] items-center justify-center relative shrink-0 w-[1312px]" data-name="Section" data-node-id="16:188">
+        <div className="content-stretch flex flex-col gap-[40px] items-center justify-center relative shrink-0 w-full max-w-[1312px] px-4 lg:px-0" data-name="Section" data-node-id="16:188">
           <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-full" data-node-id="16:447">
-            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[24px] whitespace-nowrap" data-node-id="16:448">
+            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[clamp(1.25rem,4vw,1.5rem)]" data-node-id="16:448">
               Why Choose Us
             </p>
-            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-[614px]" data-node-id="16:449">
+            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-full max-w-[614px]" data-node-id="16:449">
               We provide a fast, secure, and user-friendly platform designed to make downloading content from multiple social media platforms simple and reliable.
             </p>
           </div>
           <div className="content-stretch flex flex-col items-start relative shrink-0 w-full" data-node-id="16:562">
-            <div className="content-stretch flex gap-[20px] h-[307px] items-start justify-center relative shrink-0 w-full" data-node-id="16:517">
+            <div className="content-stretch flex flex-col lg:flex-row gap-[16px] lg:gap-[20px] h-auto lg:h-[307px] items-stretch lg:items-start justify-center relative shrink-0 w-full" data-node-id="16:517">
               <div className="bg-white content-stretch flex flex-[1_0_0] flex-col gap-[20px] items-center justify-center min-h-px min-w-px px-[20px] py-[24px] relative rounded-[16px] self-stretch shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)]" data-node-id="16:518">
                 <OutlineStatusLightningAlt className="relative shrink-0 size-[60px]" />
                 <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-node-id="16:521">
@@ -600,25 +639,25 @@ export default function Desktop() {
             </div>
           </div>
         </div>
-        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0" data-node-id="50:461">
+        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-full px-4 lg:px-0" data-node-id="50:461">
           <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-full" data-node-id="50:462">
-            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[24px] whitespace-nowrap" data-node-id="50:463">
+            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[clamp(1.1rem,4vw,1.5rem)]" data-node-id="50:463">
               More Reasons to Choose Our Platform
             </p>
-            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-[614px]" data-node-id="50:464">
+            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-full max-w-[614px]" data-node-id="50:464">
               Discover additional advantages that make our platform a reliable and convenient choice for downloading content from multiple social media platforms.
             </p>
           </div>
-          <div className="content-stretch flex gap-[20px] items-start relative shrink-0" data-node-id="50:551">
-            <div className="content-stretch flex items-center relative shrink-0 w-[604px]" data-node-id="50:465">
-              <div className="content-stretch flex flex-[1_0_0] flex-col gap-[20px] items-start min-h-px min-w-px relative" data-node-id="50:466">
-                <div className="content-stretch flex gap-[16px] items-start px-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="50:467">
-                  <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic relative shrink-0 text-[#c1b5db] text-[24px] whitespace-nowrap" data-node-id="50:555">
+          <div className="content-stretch flex flex-col lg:flex-row gap-[20px] items-start relative shrink-0 w-full" data-node-id="50:551">
+            <div className="content-stretch flex items-center relative shrink-0 w-full lg:w-[604px]" data-node-id="50:465">
+              <div className="content-stretch flex flex-col gap-[20px] items-start min-w-0 relative w-full" data-node-id="50:466">
+                <div className="content-stretch flex gap-[16px] items-start px-[16px] md:px-[24px] py-4 relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="50:467">
+                  <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic relative shrink-0 text-[#c1b5db] text-[24px]" data-node-id="50:555">
                     01
                   </p>
-                  <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-[468px]" data-node-id="50:470">
+                  <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full min-w-0" data-node-id="50:470">
                     <div className="content-stretch flex items-center relative shrink-0 w-full" data-node-id="50:471">
-                      <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[#404040] text-[16px] whitespace-nowrap" data-node-id="50:472">
+                      <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[#404040] text-[16px]" data-node-id="50:472">
                         Smooth and Hassle-Free Experience
                       </p>
                     </div>
@@ -627,13 +666,13 @@ export default function Desktop() {
                     </p>
                   </div>
                 </div>
-                <div className="content-stretch flex gap-[16px] items-start px-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="50:517">
-                  <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic relative shrink-0 text-[#c1b5db] text-[24px] whitespace-nowrap" data-node-id="50:556">
+                <div className="content-stretch flex gap-[16px] items-start px-[16px] md:px-[24px] py-4 relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="50:517">
+                  <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic relative shrink-0 text-[#c1b5db] text-[24px]" data-node-id="50:556">
                     02
                   </p>
-                  <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-[468px]" data-node-id="50:520">
+                  <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full min-w-0" data-node-id="50:520">
                     <div className="content-stretch flex items-center relative shrink-0 w-full" data-node-id="50:521">
-                      <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[#404040] text-[16px] whitespace-nowrap" data-node-id="50:522">
+                      <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[#404040] text-[16px]" data-node-id="50:522">
                         Safe and Trustworthy Environment
                       </p>
                     </div>
@@ -642,11 +681,11 @@ export default function Desktop() {
                     </p>
                   </div>
                 </div>
-                <div className="content-stretch flex gap-[16px] items-start px-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="50:474">
-                  <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic relative shrink-0 text-[#c1b5db] text-[24px] whitespace-nowrap" data-node-id="50:558">
+                <div className="content-stretch flex gap-[16px] items-start px-[16px] md:px-[24px] py-4 relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="50:474">
+                  <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic relative shrink-0 text-[#c1b5db] text-[24px]" data-node-id="50:558">
                     03
                   </p>
-                  <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-[468px]" data-node-id="50:477">
+                  <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full min-w-0" data-node-id="50:477">
                     <div className="content-stretch flex items-center justify-center relative shrink-0 w-full" data-node-id="50:478">
                       <p className="flex-[1_0_0] font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[22px] min-h-px min-w-px not-italic relative text-[#404040] text-[16px]" data-node-id="50:479">
                         Consistent Performance You Can Rely On
@@ -659,15 +698,15 @@ export default function Desktop() {
                 </div>
               </div>
             </div>
-            <div className="content-stretch flex items-center relative shrink-0 w-[604px]" data-node-id="50:525">
-              <div className="content-stretch flex flex-[1_0_0] flex-col gap-[20px] items-start min-h-px min-w-px relative" data-node-id="50:526">
-                <div className="content-stretch flex gap-[16px] items-start px-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="50:527">
-                  <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic relative shrink-0 text-[#c1b5db] text-[24px] whitespace-nowrap" data-node-id="50:562">
+            <div className="content-stretch flex items-center relative shrink-0 w-full lg:w-[604px]" data-node-id="50:525">
+              <div className="content-stretch flex flex-col gap-[20px] items-start min-w-0 relative w-full" data-node-id="50:526">
+                <div className="content-stretch flex gap-[16px] items-start px-[16px] md:px-[24px] py-4 relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="50:527">
+                  <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic relative shrink-0 text-[#c1b5db] text-[24px]" data-node-id="50:562">
                     04
                   </p>
-                  <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-[468px]" data-node-id="50:530">
+                  <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full min-w-0" data-node-id="50:530">
                     <div className="content-stretch flex items-center relative shrink-0 w-full" data-node-id="50:531">
-                      <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[#404040] text-[16px] whitespace-nowrap" data-node-id="50:532">
+                      <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[#404040] text-[16px]" data-node-id="50:532">
                         Wide Platform Coverage
                       </p>
                     </div>
@@ -676,13 +715,13 @@ export default function Desktop() {
                     </p>
                   </div>
                 </div>
-                <div className="content-stretch flex gap-[16px] items-start px-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="50:534">
-                  <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic relative shrink-0 text-[#c1b5db] text-[24px] whitespace-nowrap" data-node-id="50:560">
+                <div className="content-stretch flex gap-[16px] items-start px-[16px] md:px-[24px] py-4 relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="50:534">
+                  <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic relative shrink-0 text-[#c1b5db] text-[24px]" data-node-id="50:560">
                     05
                   </p>
-                  <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-[468px]" data-node-id="50:537">
+                  <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full min-w-0" data-node-id="50:537">
                     <div className="content-stretch flex items-center relative shrink-0 w-full" data-node-id="50:538">
-                      <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[#404040] text-[16px] whitespace-nowrap" data-node-id="50:539">
+                      <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[#404040] text-[16px]" data-node-id="50:539">
                         No Limits or Restrictions
                       </p>
                     </div>
@@ -691,11 +730,11 @@ export default function Desktop() {
                     </p>
                   </div>
                 </div>
-                <div className="content-stretch flex gap-[16px] items-start px-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="50:541">
-                  <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic relative shrink-0 text-[#c1b5db] text-[24px] whitespace-nowrap" data-node-id="50:564">
+                <div className="content-stretch flex gap-[16px] items-start px-[16px] md:px-[24px] py-4 relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="50:541">
+                  <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic relative shrink-0 text-[#c1b5db] text-[24px]" data-node-id="50:564">
                     06
                   </p>
-                  <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-[468px]" data-node-id="50:544">
+                  <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full min-w-0" data-node-id="50:544">
                     <div className="content-stretch flex items-center justify-center relative shrink-0 w-full" data-node-id="50:545">
                       <p className="flex-[1_0_0] font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[22px] min-h-px min-w-px not-italic relative text-[#404040] text-[16px]" data-node-id="50:546">
                         Accessible Anytime, Anywhere
@@ -710,193 +749,80 @@ export default function Desktop() {
             </div>
           </div>
         </div>
-        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0" data-node-id="12:454">
+        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-full px-4 lg:px-0" data-node-id="12:454">
           <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center" data-node-id="12:455">
-            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[24px] whitespace-nowrap" data-node-id="12:456">
+            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[clamp(1rem,4vw,1.5rem)]" data-node-id="12:456">
               Why Choose Our Free Social Media Downloader
             </p>
-            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-[570px]" data-node-id="12:457">
+            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-full max-w-[570px]" data-node-id="12:457">
               See how our platform stands out with faster speeds, more supported platforms, and a secure experience without hidden costs or data tracking.
             </p>
           </div>
-          <div className="content-stretch flex flex-col items-start relative shrink-0 w-[880px]" data-node-id="12:580">
-            <div className="bg-[#f7f7f7] border-[#d1d3d9] border-[0.5px] border-solid content-stretch flex h-[48px] items-center overflow-clip relative rounded-tl-[12px] rounded-tr-[12px] shrink-0 w-full" data-node-id="12:581">
-              <div className="content-stretch flex flex-[1_0_0] h-[48px] items-center min-h-px min-w-px px-[16px] relative" data-node-id="12:582">
-                <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[#404040] text-[14px] whitespace-nowrap" data-node-id="12:583">
-                  Features
-                </p>
-              </div>
-              <div className="bg-[#f7f4fe] border-[#6f40dd] border-l-2 border-r-2 border-solid border-t-2 content-stretch flex flex-[1_0_0] h-full items-center min-h-px min-w-px px-[16px] relative rounded-tl-[12px] rounded-tr-[12px]" data-node-id="12:584">
-                <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[#404040] text-[14px] whitespace-nowrap" data-node-id="12:585">
-                  Brand Name
-                </p>
-              </div>
-              <div className="content-stretch flex flex-[1_0_0] h-[48px] items-center min-h-px min-w-px px-[16px] relative" data-node-id="12:586">
-                <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[#404040] text-[14px] whitespace-nowrap" data-node-id="12:587">
-                  Other Downloaders
-                </p>
-              </div>
-            </div>
-            <div className="bg-white border-[#d1d3d9] border-[0.5px] border-solid content-stretch flex h-[80px] items-center overflow-clip relative shrink-0 w-full" data-node-id="12:588">
-              <div className="content-stretch flex flex-[1_0_0] flex-col h-[52px] items-start justify-center min-h-px min-w-px px-[16px] relative" data-node-id="12:589">
-                <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#404040] text-[14px] whitespace-nowrap" data-node-id="12:590">
-                  Cost to Use
-                </p>
-              </div>
-              <div className="bg-[#f7f4fe] border-[#6f40dd] border-l-2 border-r-2 border-solid content-stretch flex flex-[1_0_0] h-full items-center min-h-px min-w-px px-[16px] relative" data-node-id="12:591">
-                <div className="content-stretch flex gap-[8px] items-center justify-center relative shrink-0" data-node-id="13:625">
-                  <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative shrink-0" data-name="vuesax/linear/tick-circle" data-node-id="13:633">
-                    <div className="col-1 ml-0 mt-0 relative row-1 size-[16px]" data-name="tick-circle" data-node-id="13:634">
-                      <img alt="" className="absolute block max-w-none size-full" src={imgTickCircle} />
-                    </div>
-                  </div>
-                  <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#606060] text-[14px] whitespace-nowrap" data-node-id="12:592">
-                    100% Free
-                  </p>
+          <div className="w-full">
+            <div className="w-full max-w-[880px] mx-auto border border-[#d1d3d9] rounded-[12px] overflow-hidden bg-white">
+              <div className="grid grid-cols-3 min-h-[48px] bg-[#f7f7f7] border-b border-[#d1d3d9]">
+                <div className="px-4 flex items-center">
+                  <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#404040] text-[14px]">Features</p>
+                </div>
+                <div className="px-4 flex items-center justify-center bg-[#f7f4fe] border-x-2 border-t-2 border-[#6f40dd] rounded-tl-[12px] rounded-tr-[12px]">
+                  <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#404040] text-[14px] text-center">Brand Name</p>
+                </div>
+                <div className="px-2 sm:px-4 flex items-center justify-center">
+                  <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#404040] text-[14px] text-center">Other Downloaders</p>
                 </div>
               </div>
-              <div className="content-stretch flex flex-[1_0_0] h-[52px] items-center min-h-px min-w-px px-[16px] relative" data-node-id="12:593">
-                <div className="content-stretch flex gap-[8px] items-center justify-center relative shrink-0" data-node-id="13:663">
-                  <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative shrink-0" data-name="vuesax/linear/tick-circle" data-node-id="13:664">
-                    <div className="col-1 ml-0 mt-0 relative row-1 size-[16px]" data-name="tick-circle" data-node-id="13:665">
-                      <img alt="" className="absolute block max-w-none size-full" src={imgTickCircle1} />
+
+              {comparisonRows.map((row, index) => {
+                const isLast = index === comparisonRows.length - 1;
+                return (
+                  <div
+                    key={row.feature}
+                    className={`grid grid-cols-3 min-h-[110px] md:min-h-[80px] border-[#d1d3d9] ${isLast ? "" : "border-b"}`}
+                  >
+                    <div className="px-3 sm:px-4 flex items-start md:items-center pt-4 md:pt-0">
+                      <p className="font-['Inter:Medium',sans-serif] font-medium text-[#404040] text-[14px] leading-[20px]">
+                        {row.feature}
+                      </p>
+                    </div>
+
+                    <div
+                      className={`px-3 sm:px-4 bg-[#f7f4fe] border-x-2 border-[#6f40dd] flex items-center justify-center ${isLast ? "border-b-2 rounded-bl-[12px] rounded-br-[12px]" : ""}`}
+                    >
+                      <div className="w-full max-w-[100px] flex items-center gap-2">
+                        <span className="size-[16px] shrink-0" aria-hidden>
+                          <svg viewBox="0 0 16 16" className="block size-[16px]" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="8" cy="8" r="6.667" fill="#44AD57" />
+                            <path d="M5.2 8L7.05 9.85L10.8 6.1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
+                        <p className="font-['Inter:Medium',sans-serif] font-medium text-[#606060] text-[14px] leading-[20px] break-words">
+                          {row.brand}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="px-2 sm:px-4 flex items-center justify-center">
+                      <div className="w-full max-w-[100px] flex items-center gap-2">
+                        <span className="size-[16px] shrink-0" aria-hidden>
+                          <svg viewBox="0 0 16 16" className="block size-[16px]" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="8" cy="8" r="6.667" fill="#D43838" />
+                            <path d="M6.33 6L10.33 10M10.33 6L6.33 10" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
+                        <p className="font-['Inter:Medium',sans-serif] font-medium text-[#606060] text-[14px] leading-[20px] break-words">
+                          {row.other}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#606060] text-[14px] whitespace-nowrap" data-node-id="12:594">
-                    Subscription or hidden fees
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white border-[#d1d3d9] border-[0.5px] border-solid content-stretch flex h-[80px] items-center overflow-clip relative shrink-0 w-full" data-node-id="12:595">
-              <div className="content-stretch flex flex-[1_0_0] flex-col h-[52px] items-start justify-center min-h-px min-w-px px-[16px] relative" data-node-id="12:596">
-                <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#404040] text-[14px] whitespace-nowrap" data-node-id="12:597">
-                  Supported Platforms
-                </p>
-              </div>
-              <div className="bg-[#f7f4fe] border-[#6f40dd] border-l-2 border-r-2 border-solid content-stretch flex flex-[1_0_0] h-full items-center min-h-px min-w-px px-[16px] relative" data-node-id="12:598">
-                <div className="content-stretch flex gap-[8px] items-center justify-center relative shrink-0" data-node-id="13:626">
-                  <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative shrink-0" data-name="vuesax/linear/tick-circle" data-node-id="13:639">
-                    <div className="col-1 ml-0 mt-0 relative row-1 size-[16px]" data-name="tick-circle" data-node-id="13:640">
-                      <img alt="" className="absolute block max-w-none size-full" src={imgTickCircle} />
-                    </div>
-                  </div>
-                  <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#606060] text-[14px] whitespace-nowrap" data-node-id="12:599">
-                    22 Platforms
-                  </p>
-                </div>
-              </div>
-              <div className="content-stretch flex flex-[1_0_0] h-[52px] items-center min-h-px min-w-px px-[16px] relative" data-node-id="12:600">
-                <div className="content-stretch flex gap-[8px] items-center justify-center relative shrink-0" data-node-id="13:673">
-                  <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative shrink-0" data-name="vuesax/linear/tick-circle" data-node-id="13:674">
-                    <div className="col-1 ml-0 mt-0 relative row-1 size-[16px]" data-name="tick-circle" data-node-id="13:675">
-                      <img alt="" className="absolute block max-w-none size-full" src={imgTickCircle1} />
-                    </div>
-                  </div>
-                  <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#606060] text-[14px] whitespace-nowrap" data-node-id="12:601">
-                    Limited platforms
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white border-[#d1d3d9] border-[0.5px] border-solid content-stretch flex h-[80px] items-center overflow-clip relative shrink-0 w-full" data-node-id="12:602">
-              <div className="content-stretch flex flex-[1_0_0] flex-col h-[52px] items-start justify-center min-h-px min-w-px px-[16px] relative" data-node-id="12:603">
-                <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#404040] text-[14px] whitespace-nowrap" data-node-id="12:604">
-                  Download Categories
-                </p>
-              </div>
-              <div className="bg-[#f7f4fe] border-[#6f40dd] border-l-2 border-r-2 border-solid content-stretch flex flex-[1_0_0] h-full items-center min-h-px min-w-px px-[16px] relative" data-node-id="12:605">
-                <div className="content-stretch flex gap-[8px] items-center justify-center relative shrink-0" data-node-id="13:627">
-                  <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative shrink-0" data-name="vuesax/linear/tick-circle" data-node-id="13:645">
-                    <div className="col-1 ml-0 mt-0 relative row-1 size-[16px]" data-name="tick-circle" data-node-id="13:646">
-                      <img alt="" className="absolute block max-w-none size-full" src={imgTickCircle} />
-                    </div>
-                  </div>
-                  <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#606060] text-[14px] whitespace-nowrap" data-node-id="12:606">
-                    All Content Types Available
-                  </p>
-                </div>
-              </div>
-              <div className="content-stretch flex flex-[1_0_0] h-[52px] items-center min-h-px min-w-px px-[16px] relative" data-node-id="12:607">
-                <div className="content-stretch flex gap-[8px] items-center justify-center relative shrink-0" data-node-id="13:681">
-                  <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative shrink-0" data-name="vuesax/linear/tick-circle" data-node-id="13:682">
-                    <div className="col-1 ml-0 mt-0 relative row-1 size-[16px]" data-name="tick-circle" data-node-id="13:683">
-                      <img alt="" className="absolute block max-w-none size-full" src={imgTickCircle1} />
-                    </div>
-                  </div>
-                  <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#606060] text-[14px] whitespace-nowrap" data-node-id="12:608">
-                    Limited options
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white border-[#d1d3d9] border-[0.5px] border-solid content-stretch flex h-[80px] items-center overflow-clip relative shrink-0 w-full" data-node-id="12:609">
-              <div className="content-stretch flex flex-[1_0_0] flex-col h-[52px] items-start justify-center min-h-px min-w-px px-[16px] relative" data-node-id="12:610">
-                <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#404040] text-[14px] whitespace-nowrap" data-node-id="12:611">
-                  Download Speed
-                </p>
-              </div>
-              <div className="bg-[#f7f4fe] border-[#6f40dd] border-l-2 border-r-2 border-solid content-stretch flex flex-[1_0_0] h-full items-center min-h-px min-w-px px-[16px] relative" data-node-id="12:612">
-                <div className="content-stretch flex gap-[8px] items-center justify-center relative shrink-0" data-node-id="13:628">
-                  <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative shrink-0" data-name="vuesax/linear/tick-circle" data-node-id="13:651">
-                    <div className="col-1 ml-0 mt-0 relative row-1 size-[16px]" data-name="tick-circle" data-node-id="13:652">
-                      <img alt="" className="absolute block max-w-none size-full" src={imgTickCircle} />
-                    </div>
-                  </div>
-                  <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#606060] text-[14px] whitespace-nowrap" data-node-id="12:613">
-                    Fast Processing
-                  </p>
-                </div>
-              </div>
-              <div className="content-stretch flex flex-[1_0_0] h-[52px] items-center min-h-px min-w-px px-[16px] relative" data-node-id="12:614">
-                <div className="content-stretch flex gap-[8px] items-center justify-center relative shrink-0" data-node-id="13:689">
-                  <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative shrink-0" data-name="vuesax/linear/tick-circle" data-node-id="13:690">
-                    <div className="col-1 ml-0 mt-0 relative row-1 size-[16px]" data-name="tick-circle" data-node-id="13:691">
-                      <img alt="" className="absolute block max-w-none size-full" src={imgTickCircle1} />
-                    </div>
-                  </div>
-                  <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#606060] text-[14px] whitespace-nowrap" data-node-id="12:615">
-                    Slower or inconsistent
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white border-[#d1d3d9] border-[0.5px] border-solid content-stretch flex h-[80px] items-center overflow-clip relative rounded-bl-[12px] rounded-br-[12px] shrink-0 w-full" data-node-id="12:616">
-              <div className="content-stretch flex flex-[1_0_0] flex-col h-[52px] items-start justify-center min-h-px min-w-px px-[16px] relative" data-node-id="12:617">
-                <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#404040] text-[14px] whitespace-nowrap" data-node-id="12:618">
-                  Reliability
-                </p>
-              </div>
-              <div className="bg-[#f7f4fe] border-[#6f40dd] border-b-2 border-l-2 border-r-2 border-solid content-stretch flex h-full items-center px-[16px] relative rounded-bl-[12px] rounded-br-[12px] shrink-0 w-[294px]" data-node-id="12:619">
-                <div className="content-stretch flex gap-[8px] items-center justify-center relative shrink-0" data-node-id="13:629">
-                  <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative shrink-0" data-name="vuesax/linear/tick-circle" data-node-id="13:657">
-                    <div className="col-1 ml-0 mt-0 relative row-1 size-[16px]" data-name="tick-circle" data-node-id="13:658">
-                      <img alt="" className="absolute block max-w-none size-full" src={imgTickCircle} />
-                    </div>
-                  </div>
-                  <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#606060] text-[14px] whitespace-nowrap" data-node-id="12:620">
-                    High Success Rate
-                  </p>
-                </div>
-              </div>
-              <div className="content-stretch flex flex-[1_0_0] h-[52px] items-center min-h-px min-w-px px-[16px] relative" data-node-id="12:621">
-                <div className="content-stretch flex gap-[8px] items-center justify-center relative shrink-0" data-node-id="13:697">
-                  <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative shrink-0" data-name="vuesax/linear/tick-circle" data-node-id="13:698">
-                    <div className="col-1 ml-0 mt-0 relative row-1 size-[16px]" data-name="tick-circle" data-node-id="13:699">
-                      <img alt="" className="absolute block max-w-none size-full" src={imgTickCircle1} />
-                    </div>
-                  </div>
-                  <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#606060] text-[14px] whitespace-nowrap" data-node-id="12:622">
-                    Download failures possible
-                  </p>
-                </div>
-              </div>
+                );
+              })}
             </div>
           </div>
         </div>
-        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-[calc(100vw-32px)] md:w-full max-w-[1280px] px-0" data-node-id="10:348">
-          <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center" data-node-id="10:94">
-            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[24px] whitespace-nowrap" data-node-id="10:95">
+        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-full max-w-[1280px] px-4 lg:px-0" data-node-id="10:348">
+          <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-full" data-node-id="10:94">
+            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[clamp(1.1rem,4vw,1.5rem)]" data-node-id="10:95">
               All Your Favorite Platforms in One Place
             </p>
             <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-full max-w-[457px]" data-node-id="10:96">
@@ -904,7 +830,7 @@ export default function Desktop() {
             </p>
           </div>
           <div className="content-stretch flex flex-col gap-[32px] items-start relative shrink-0 w-full" data-node-id="10:347">
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-11 gap-x-4 gap-y-6 w-full" data-node-id="10:345">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-11 gap-4 md:gap-6 w-full" data-node-id="10:345">
               <div className="content-stretch flex flex-col gap-[8px] min-h-[50px] items-center justify-center relative w-full" data-node-id="10:245">
                 <SocialMediaPinterest className="relative shrink-0 size-[24px]" />
                 <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#505050] text-[12px] md:text-[14px] text-center whitespace-nowrap" data-node-id="10:247">
@@ -1062,17 +988,17 @@ export default function Desktop() {
             </div>
           </div>
         </div>
-        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-[1155px]" data-node-id="50:611">
-          <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-[855px]" data-node-id="50:612">
-            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] min-w-full relative shrink-0 text-[#2d2d2d] text-[24px] w-[min-content]" data-node-id="50:613">
+        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-full max-w-[1155px] px-4 lg:px-0" data-node-id="50:611">
+          <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-full max-w-[855px]" data-node-id="50:612">
+            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[clamp(1.125rem,4vw,1.5rem)] w-full" data-node-id="50:613">
               Our Purpose
             </p>
-            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-[660px]" data-node-id="50:614">
+            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-full max-w-[660px]" data-node-id="50:614">
               Making content downloads simple, accessible, and reliable for everyone, everywhere.
             </p>
           </div>
-          <div className="content-stretch flex gap-[155px] items-center justify-center relative shrink-0 w-full" data-node-id="50:615">
-            <div className="content-stretch flex flex-col font-['Inter:Regular',sans-serif] font-normal gap-[15px] items-start leading-[28px] not-italic relative shrink-0 text-[#404040] text-[16px] w-[612px]" data-node-id="50:616">
+          <div className="content-stretch flex flex-col lg:flex-row gap-[24px] lg:gap-[155px] items-center justify-center relative shrink-0 w-full" data-node-id="50:615">
+            <div className="content-stretch flex flex-col font-['Inter:Regular',sans-serif] font-normal gap-[15px] items-start leading-[28px] not-italic relative shrink-0 text-[#404040] text-[16px] w-full lg:w-[612px]" data-node-id="50:616">
               <p className="relative shrink-0 w-full" data-node-id="50:617">
                 Our purpose is to provide users with a fast, convenient, and trustworthy way to download content from multiple social media platforms without complications. We aim to remove barriers such as subscriptions, technical complexity, and privacy concerns by offering a solution that is easy to use and accessible to everyone. By focusing on speed, simplicity, and security, we strive to create a platform that people can rely on whenever they need quick access to their favorite online content.
               </p>
@@ -1093,18 +1019,18 @@ export default function Desktop() {
             </div>
           </div>
         </div>
-        <div className="content-stretch flex flex-col gap-[40px] items-center justify-center relative shrink-0 w-[1064px]" data-name="Section" data-node-id="51:643">
+        <div className="content-stretch flex flex-col gap-[40px] items-center justify-center relative shrink-0 w-full max-w-[1064px] px-4 lg:px-0" data-name="Section" data-node-id="51:643">
           <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-full" data-node-id="51:644">
-            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[24px] whitespace-nowrap" data-node-id="51:645">
+            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[clamp(1.125rem,4vw,1.5rem)]" data-node-id="51:645">
               Powerful Features for Fast and Easy Downloads
             </p>
-            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-[614px]" data-node-id="51:646">
+            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-full max-w-[614px]" data-node-id="51:646">
               Everything you need to download content from multiple social media platforms in one place - free, secure, and designed for a smooth user experience.
             </p>
           </div>
           <div className="content-stretch flex flex-col gap-[20px] items-start relative shrink-0 w-full" data-node-id="51:647">
-            <div className="content-stretch flex gap-[20px] items-start justify-center relative shrink-0 w-full" data-node-id="51:648">
-              <div className="bg-white content-stretch flex flex-col h-[178px] items-start justify-center px-[40px] py-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-[340px]" data-node-id="51:649">
+            <div className="content-stretch flex flex-col lg:flex-row gap-[20px] items-stretch lg:items-start justify-center relative shrink-0 w-full" data-node-id="51:648">
+              <div className="bg-white content-stretch flex flex-col h-auto lg:h-[178px] items-start justify-center px-[20px] lg:px-[40px] py-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full lg:w-[340px]" data-node-id="51:649">
                 <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-node-id="51:650">
                   <div className="content-stretch flex items-center justify-center relative shrink-0 w-full" data-node-id="51:651">
                     <p className="flex-[1_0_0] font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] min-h-px min-w-px not-italic relative text-[#404040] text-[16px]" data-node-id="51:652">
@@ -1116,7 +1042,7 @@ export default function Desktop() {
                   </p>
                 </div>
               </div>
-              <div className="bg-white content-stretch flex flex-col h-[178px] items-start justify-center px-[40px] py-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-[340px]" data-node-id="51:654">
+              <div className="bg-white content-stretch flex flex-col h-auto lg:h-[178px] items-start justify-center px-[20px] lg:px-[40px] py-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full lg:w-[340px]" data-node-id="51:654">
                 <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-node-id="51:655">
                   <div className="content-stretch flex items-center justify-center relative shrink-0 w-full" data-node-id="51:656">
                     <p className="flex-[1_0_0] font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] min-h-px min-w-px not-italic relative text-[#404040] text-[16px]" data-node-id="51:657">
@@ -1128,7 +1054,7 @@ export default function Desktop() {
                   </p>
                 </div>
               </div>
-              <div className="bg-white content-stretch flex flex-col h-[178px] items-start justify-center px-[40px] py-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-[340px]" data-node-id="51:659">
+              <div className="bg-white content-stretch flex flex-col h-auto lg:h-[178px] items-start justify-center px-[20px] lg:px-[40px] py-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full lg:w-[340px]" data-node-id="51:659">
                 <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-node-id="51:660">
                   <div className="content-stretch flex items-center justify-center relative shrink-0 w-full" data-node-id="51:661">
                     <p className="flex-[1_0_0] font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] min-h-px min-w-px not-italic relative text-[#404040] text-[16px]" data-node-id="51:662">
@@ -1141,8 +1067,8 @@ export default function Desktop() {
                 </div>
               </div>
             </div>
-            <div className="content-stretch flex gap-[20px] items-start justify-center relative shrink-0 w-full" data-node-id="51:664">
-              <div className="bg-white content-stretch flex flex-col h-[178px] items-start justify-center px-[40px] py-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-[340px]" data-node-id="51:665">
+            <div className="content-stretch flex flex-col lg:flex-row gap-[20px] items-stretch lg:items-start justify-center relative shrink-0 w-full" data-node-id="51:664">
+              <div className="bg-white content-stretch flex flex-col h-auto lg:h-[178px] items-start justify-center px-[20px] lg:px-[40px] py-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full lg:w-[340px]" data-node-id="51:665">
                 <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-node-id="51:666">
                   <div className="content-stretch flex items-center justify-center relative shrink-0 w-full" data-node-id="51:667">
                     <p className="flex-[1_0_0] font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] min-h-px min-w-px not-italic relative text-[#404040] text-[16px]" data-node-id="51:668">
@@ -1154,7 +1080,7 @@ export default function Desktop() {
                   </p>
                 </div>
               </div>
-              <div className="bg-white content-stretch flex flex-col h-[178px] items-start justify-center px-[40px] py-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-[340px]" data-node-id="51:670">
+              <div className="bg-white content-stretch flex flex-col h-auto lg:h-[178px] items-start justify-center px-[20px] lg:px-[40px] py-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full lg:w-[340px]" data-node-id="51:670">
                 <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-node-id="51:671">
                   <div className="content-stretch flex items-center justify-center relative shrink-0 w-full" data-node-id="51:672">
                     <p className="flex-[1_0_0] font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] min-h-px min-w-px not-italic relative text-[#404040] text-[16px]" data-node-id="51:673">
@@ -1166,7 +1092,7 @@ export default function Desktop() {
                   </p>
                 </div>
               </div>
-              <div className="bg-white content-stretch flex flex-col h-[178px] items-start justify-center px-[40px] py-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-[340px]" data-node-id="51:675">
+              <div className="bg-white content-stretch flex flex-col h-auto lg:h-[178px] items-start justify-center px-[20px] lg:px-[40px] py-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full lg:w-[340px]" data-node-id="51:675">
                 <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-node-id="51:676">
                   <div className="content-stretch flex items-center justify-center relative shrink-0 w-full" data-node-id="51:677">
                     <p className="flex-[1_0_0] font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] min-h-px min-w-px not-italic relative text-[#404040] text-[16px]" data-node-id="51:678">
@@ -1181,23 +1107,23 @@ export default function Desktop() {
             </div>
           </div>
         </div>
-        <div className="bg-[#f5f3fb] border border-[#cfcfe4] border-solid h-[398px] overflow-clip relative rounded-[24px] shrink-0 w-[1320px]" data-node-id="16:563">
-          <div className="absolute content-stretch flex flex-col gap-[20px] items-start justify-center left-[39.5px] not-italic top-[39.5px]" data-node-id="16:564">
-            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[24px] text-center whitespace-nowrap" data-node-id="16:565">
+        <div className="bg-[#f5f3fb] border border-[#cfcfe4] border-solid h-auto lg:h-[398px] overflow-clip relative rounded-[24px] shrink-0 w-full max-w-[1320px] p-6 lg:p-0" data-node-id="16:563">
+          <div className="lg:absolute content-stretch flex flex-col gap-[20px] items-start justify-center lg:left-[39.5px] not-italic lg:top-[39.5px] mb-6 lg:mb-0" data-node-id="16:564">
+            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[clamp(1.1rem,4vw,1.5rem)] lg:text-center" data-node-id="16:565">
               Why you can trust this platform
             </p>
-            <div className="font-['Inter:Medium',sans-serif] font-medium leading-[27px] relative shrink-0 text-[#505050] text-[16px] w-[614px]" data-node-id="16:566">
+            <div className="font-['Inter:Medium',sans-serif] font-medium leading-[27px] relative shrink-0 text-[#505050] text-[16px] w-full lg:w-[614px]" data-node-id="16:566">
               <p className="mb-0">Our platform is built to provide a seamless experience for downloading content from multiple social media platforms quickly and securely. We focus on speed, simplicity, and user privacy - so you can download what you need without complications or concerns.</p>
               <p>We do not require login credentials, we do not store your links, and we do not track your downloads. Every process is designed to keep your activity private while delivering high-quality results in seconds.</p>
             </div>
           </div>
-          <div className="absolute bg-[#6f40dd] content-stretch flex gap-[4px] items-center justify-center left-[39.5px] px-[16px] py-[8px] rounded-[33px] top-[317.5px]" data-node-id="6:350">
+          <div className="lg:absolute bg-[#6f40dd] content-stretch flex gap-[4px] items-center justify-center lg:left-[39.5px] px-[16px] py-[8px] rounded-[33px] lg:top-[317.5px] mb-6 lg:mb-0" data-node-id="6:350">
             <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[16px] text-white whitespace-nowrap" data-node-id="6:351">
               Learn more about privacy
             </p>
             <SolidInterfaceCaretRight className="relative shrink-0 size-[24px]" />
           </div>
-          <div className="absolute content-stretch flex flex-col gap-[20px] items-start justify-center left-[853.5px] p-[8px] top-[39.5px] w-[288px]" data-node-id="16:581">
+          <div className="lg:absolute content-stretch flex flex-col gap-[20px] items-start justify-center lg:left-[853.5px] p-[8px] lg:top-[39.5px] w-full lg:w-[288px]" data-node-id="16:581">
             <div className="content-stretch flex gap-[8px] items-center relative shrink-0 w-full" data-node-id="16:574">
               <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative shrink-0" data-name="vuesax/linear/tick-circle" data-node-id="16:575">
                 <div className="col-1 ml-0 mt-0 relative row-1 size-[16px]" data-name="tick-circle" data-node-id="16:576">
@@ -1280,18 +1206,18 @@ export default function Desktop() {
             </div>
           </div>
         </div>
-        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-[1130px]" data-node-id="29:262">
+        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-full max-w-[1130px] px-4 lg:px-0" data-node-id="29:262">
           <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-full" data-node-id="27:725">
-            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[24px] whitespace-nowrap" data-node-id="27:726">
+            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[clamp(1.125rem,4vw,1.5rem)]" data-node-id="27:726">
               Benefits That Make Downloading Easier
             </p>
-            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-[660px]" data-node-id="27:727">
+            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-full max-w-[660px]" data-node-id="27:727">
               Enjoy a faster, simpler, and more reliable way to download content from multiple social media platforms with a solution designed around your convenience and privacy.
             </p>
           </div>
-          <div className="content-stretch flex gap-[20px] items-center relative shrink-0 w-full" data-node-id="29:261">
-            <div className="content-stretch flex flex-col gap-[20px] items-start relative shrink-0 w-[340px]" data-node-id="29:259">
-              <div className="bg-white content-stretch flex flex-col gap-[20px] h-[340px] items-start justify-center p-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="27:730">
+          <div className="content-stretch flex flex-col lg:flex-row gap-[20px] items-stretch lg:items-center relative shrink-0 w-full" data-node-id="29:261">
+            <div className="content-stretch flex flex-col gap-[20px] items-start relative shrink-0 w-full lg:w-[340px]" data-node-id="29:259">
+              <div className="bg-white content-stretch flex flex-col gap-[20px] h-auto lg:h-[340px] items-start justify-center p-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="27:730">
                 <div className="bg-[#f2edfe] content-stretch flex items-center justify-center p-[4px] relative rounded-[8px] shrink-0 size-[40px]" data-name="vuesax/linear/sun" data-node-id="29:225">
                   <SolidGeneralClock className="relative shrink-0 size-[24px]" />
                 </div>
@@ -1306,7 +1232,7 @@ export default function Desktop() {
                   </p>
                 </div>
               </div>
-              <div className="bg-white content-stretch flex flex-col gap-[20px] h-[340px] items-start justify-center p-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="27:746">
+              <div className="bg-white content-stretch flex flex-col gap-[20px] h-auto lg:h-[340px] items-start justify-center p-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="27:746">
                 <div className="bg-[#f2edfe] content-stretch flex items-center justify-center p-[4px] relative rounded-[8px] shrink-0 size-[40px]" data-name="vuesax/linear/sun" data-node-id="29:229">
                   <div className="relative shrink-0 size-[25px]" data-name="Solid/Files/Copy" data-node-id="29:230">
                     <div className="absolute inset-[13.54%_14.73%_14.67%_13.54%]" data-name="Icon" data-node-id="I29:230;8:479">
@@ -1326,7 +1252,7 @@ export default function Desktop() {
                 </div>
               </div>
             </div>
-            <div className="bg-white content-stretch flex flex-col gap-[20px] h-[700px] items-start p-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0" data-node-id="27:735">
+            <div className="bg-white content-stretch flex flex-col gap-[20px] h-auto lg:h-[700px] items-start p-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full lg:flex-1" data-node-id="27:735">
               <div className="bg-[#f2edfe] content-stretch flex items-center justify-center p-[4px] relative rounded-[8px] shrink-0 size-[40px]" data-name="vuesax/linear/sun" data-node-id="29:249">
                 <div className="relative shrink-0 size-[25px]" data-name="Solid/Files/Copy" data-node-id="29:250">
                   <div className="absolute inset-[13.54%_14.73%_14.67%_13.54%]" data-name="Icon" data-node-id="I29:250;8:479">
@@ -1344,14 +1270,14 @@ export default function Desktop() {
                   Our platform works smoothly across smartphones, tablets, and desktop devices, giving you the freedom to download content wherever you are. Whether you are at home or on the go, you can rely on the same fast and easy experience.
                 </p>
               </div>
-              <div className="h-[393px] relative rounded-[20px] shrink-0 w-[362px]" data-name="image 13" data-node-id="29:257">
+              <div className="h-auto lg:h-[393px] relative rounded-[20px] shrink-0 w-full lg:w-[362px] aspect-[362/393] lg:aspect-auto" data-name="image 13" data-node-id="29:257">
                 <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-[20px]">
                   <img alt="" className="absolute h-full left-[-15.89%] max-w-none top-0 w-[132.17%]" src={imgImage13} />
                 </div>
               </div>
             </div>
-            <div className="content-stretch flex flex-col gap-[20px] items-start relative shrink-0 w-[340px]" data-node-id="29:260">
-              <div className="bg-white content-stretch flex flex-col gap-[20px] h-[340px] items-start justify-center p-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="27:740">
+            <div className="content-stretch flex flex-col gap-[20px] items-start relative shrink-0 w-full lg:w-[340px]" data-node-id="29:260">
+              <div className="bg-white content-stretch flex flex-col gap-[20px] h-auto lg:h-[340px] items-start justify-center p-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="27:740">
                 <div className="bg-[#f2edfe] content-stretch flex items-center justify-center p-[4px] relative rounded-[8px] shrink-0 size-[40px]" data-name="vuesax/linear/sun" data-node-id="29:241">
                   <div className="relative shrink-0 size-[25px]" data-name="Solid/Files/Copy" data-node-id="29:242">
                     <div className="absolute inset-[13.54%_14.73%_14.67%_13.54%]" data-name="Icon" data-node-id="I29:242;8:479">
@@ -1370,7 +1296,7 @@ export default function Desktop() {
                   </p>
                 </div>
               </div>
-              <div className="bg-white content-stretch flex flex-col gap-[20px] h-[340px] items-start justify-center p-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="27:756">
+              <div className="bg-white content-stretch flex flex-col gap-[20px] h-auto lg:h-[340px] items-start justify-center p-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="27:756">
                 <div className="bg-[#f2edfe] content-stretch flex items-center justify-center p-[4px] relative rounded-[8px] shrink-0 size-[40px]" data-name="vuesax/linear/sun" data-node-id="29:245">
                   <div className="relative shrink-0 size-[25px]" data-name="Solid/Files/Copy" data-node-id="29:246">
                     <div className="absolute inset-[13.54%_14.73%_14.67%_13.54%]" data-name="Icon" data-node-id="I29:246;8:479">
@@ -1392,17 +1318,17 @@ export default function Desktop() {
             </div>
           </div>
         </div>
-        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-[1228px]" data-node-id="45:371">
+        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-full max-w-[1228px] px-4 lg:px-0" data-node-id="45:371">
           <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-full" data-node-id="45:372">
-            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[24px] whitespace-nowrap" data-node-id="45:373">
+            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[clamp(1.1rem,4vw,1.5rem)]" data-node-id="45:373">
               What You Can Expect From Us
             </p>
-            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-[560px]" data-node-id="45:374">
+            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[24px] relative shrink-0 text-[#404040] text-[16px] w-full max-w-[560px]" data-node-id="45:374">
               We are committed to delivering a seamless downloading experience with speed, reliability, and privacy at the core of everything we offer.
             </p>
           </div>
-          <div className="content-stretch flex gap-[20px] items-center relative shrink-0 w-full" data-node-id="45:375">
-            <div className="content-stretch flex flex-[1_0_0] flex-col gap-[20px] items-start min-h-px min-w-px relative" data-node-id="45:376">
+          <div className="content-stretch flex flex-col lg:flex-row gap-[20px] items-stretch lg:items-center relative shrink-0 w-full" data-node-id="45:375">
+            <div className="content-stretch flex flex-col gap-[20px] items-start min-w-0 relative w-full lg:flex-1" data-node-id="45:376">
               <div className="content-stretch flex flex-col gap-[16px] items-start justify-center px-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="45:377">
                 <div className="content-stretch flex items-center justify-center p-[4px] relative rounded-[8px] shrink-0 size-[24px]" data-name="vuesax/linear/sun" data-node-id="45:378">
                   <OutlineInterfaceCheck className="relative shrink-0 size-[24px]" />
@@ -1436,7 +1362,7 @@ export default function Desktop() {
                 </div>
               </div>
             </div>
-            <div className="content-stretch flex flex-[1_0_0] flex-col gap-[20px] items-start min-h-px min-w-px relative" data-node-id="45:399">
+            <div className="content-stretch flex flex-col gap-[20px] items-start min-w-0 relative w-full lg:flex-1" data-node-id="45:399">
               <div className="content-stretch flex flex-col gap-[16px] items-start justify-center px-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="45:400">
                 <div className="content-stretch flex items-center justify-center p-[4px] relative rounded-[8px] shrink-0 size-[24px]" data-name="vuesax/linear/sun" data-node-id="45:439">
                   <div className="relative shrink-0 size-[24px]" data-name="Outline/Interface/Check" data-node-id="45:440">
@@ -1474,7 +1400,7 @@ export default function Desktop() {
                 </div>
               </div>
             </div>
-            <div className="content-stretch flex flex-[1_0_0] flex-col gap-[20px] items-start min-h-px min-w-px relative" data-node-id="45:419">
+            <div className="content-stretch flex flex-col gap-[20px] items-start min-w-0 relative w-full lg:flex-1" data-node-id="45:419">
               <div className="content-stretch flex flex-col gap-[16px] items-start justify-center px-[24px] relative rounded-[16px] shadow-[2px_2px_6px_0px_rgba(211,211,211,0.25)] shrink-0 w-full" data-node-id="45:420">
                 <div className="content-stretch flex items-center justify-center p-[4px] relative rounded-[8px] shrink-0 size-[24px]" data-name="vuesax/linear/sun" data-node-id="45:443">
                   <div className="relative shrink-0 size-[24px]" data-name="Outline/Interface/Check" data-node-id="45:444">
@@ -1516,10 +1442,10 @@ export default function Desktop() {
             </div>
           </div>
         </div>
-        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-[896px]" data-node-id="22:139">
-          <div className="content-stretch flex flex-col items-center relative shrink-0" data-node-id="22:140">
-            <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center whitespace-nowrap" data-node-id="22:141">
-              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[24px]" data-node-id="22:142">
+        <div className="content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-full max-w-[896px] px-4 lg:px-0" data-node-id="22:139">
+          <div className="content-stretch flex flex-col items-center relative shrink-0 w-full" data-node-id="22:140">
+            <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-full" data-node-id="22:141">
+              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[clamp(1.1rem,4vw,1.5rem)]" data-node-id="22:142">
                 Frequently Asked Questions
               </p>
               <p className="font-['Inter:Medium',sans-serif] font-medium leading-[28px] relative shrink-0 text-[#404040] text-[16px]" data-node-id="22:143">
@@ -1529,179 +1455,113 @@ export default function Desktop() {
           </div>
           <div className="content-stretch flex flex-col items-start relative shrink-0 w-full" data-name="Section" data-node-id="22:144">
             <div className="content-stretch flex flex-col items-start relative shrink-0 w-full" data-name="Primitive.div" data-node-id="22:145">
-              <div className="border-[#6f40dd] border-b border-solid content-stretch flex flex-col h-[132px] items-start pb-[2px] relative shrink-0 w-full" data-name="Container" data-node-id="22:146">
-                <div className="content-stretch flex h-[56px] items-start relative shrink-0 w-full" data-name="Primitive.h3" data-node-id="22:147">
-                  <div className="flex-[1_0_0] h-[56px] min-h-px min-w-px relative" data-name="Primitive.button" data-node-id="22:148">
-                    <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-                      <p className="-translate-x-1/2 absolute font-['Inter:Medium',sans-serif] font-medium leading-[24px] left-[167.5px] not-italic text-[#6f40dd] text-[16px] text-center top-[16px] whitespace-nowrap" data-node-id="22:149">
-                        Is this social media downloader free to use?
-                      </p>
-                      <div className="absolute flex items-center justify-center left-[860px] size-[16px] top-[20px]">
-                        <div className="flex-none rotate-180">
-                          <div className="relative size-[16px]" data-name="Icon" data-node-id="22:150">
-                            <img alt="" className="absolute block max-w-none size-full" src={imgIcon8} />
-                          </div>
-                        </div>
+              {faqItems.map((item, index) => {
+                const isOpen = index === openFaqIndex;
+                return (
+                  <div
+                    key={item.question}
+                    className={`content-stretch flex flex-col items-start relative shrink-0 w-full border-b border-solid ${isOpen ? "border-[#6f40dd]" : "border-[#ccc]"}`}
+                    data-name="Container"
+                  >
+                    <button
+                      type="button"
+                      className="w-full flex items-center justify-between gap-3 py-4 text-left"
+                      onClick={() => setOpenFaqIndex(isOpen ? -1 : index)}
+                      aria-expanded={isOpen}
+                      aria-controls={`faq-answer-${index}`}
+                    >
+                      <span className={`font-['Inter:Medium',sans-serif] font-medium leading-[24px] text-[16px] ${isOpen ? "text-[#6f40dd]" : "text-[#1d1d1d]"}`}>
+                        {item.question}
+                      </span>
+                      <span className="relative size-[16px] shrink-0" aria-hidden>
+                        <svg
+                          viewBox="0 0 16 16"
+                          className={`absolute inset-0 size-full transition-transform duration-200 ${isOpen ? "rotate-180 text-[#6f40dd]" : "rotate-0 text-[#1d1d1d]"}`}
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </span>
+                    </button>
+                    {isOpen && (
+                      <div id={`faq-answer-${index}`} className="w-full pb-4">
+                        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[32px] sm:leading-[40px] text-[#606060] text-[14px] w-full">
+                          {item.answer}
+                        </p>
                       </div>
-                    </div>
+                    )}
                   </div>
-                </div>
-                <div className="h-[56px] overflow-clip relative shrink-0 w-full" data-name="Container" data-node-id="22:152">
-                  <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[20px] left-0 not-italic text-[#606060] text-[14px] top-[-2px] w-[877px]" data-node-id="22:153">
-                    Yes, our platform is completely free to use. You can download videos, photos, reels, and other content from multiple social media platforms without paying any fees or purchasing a subscription. There are no hidden charges, and you can enjoy unlimited downloads anytime.
-                  </p>
-                </div>
-              </div>
-              <div className="border-[#ccc] border-b border-solid content-stretch flex flex-col h-[60px] items-start relative shrink-0 w-full" data-name="Container" data-node-id="22:154">
-                <div className="content-stretch flex h-[56px] items-start relative shrink-0 w-full" data-name="Primitive.h3" data-node-id="22:155">
-                  <div className="flex-[1_0_0] h-[56px] min-h-px min-w-px relative" data-name="Primitive.button" data-node-id="22:156">
-                    <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-                      <p className="-translate-x-1/2 absolute font-['Inter:Medium',sans-serif] font-medium leading-[24px] left-[202.5px] not-italic text-[#1d1d1d] text-[16px] text-center top-[16px] whitespace-nowrap" data-node-id="22:157">
-                        Do I need to create an account to download content?
-                      </p>
-                      <div className="absolute left-[860px] size-[16px] top-[20px]" data-name="Icon" data-node-id="22:158">
-                        <img alt="" className="absolute block max-w-none size-full" src={imgIcon9} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="border-[#ccc] border-b border-solid content-stretch flex flex-col h-[60px] items-start relative shrink-0 w-full" data-name="Container" data-node-id="22:160">
-                <div className="content-stretch flex h-[56px] items-start relative shrink-0 w-full" data-name="Primitive.h3" data-node-id="22:161">
-                  <div className="flex-[1_0_0] h-[56px] min-h-px min-w-px relative" data-name="Primitive.button" data-node-id="22:162">
-                    <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-                      <p className="-translate-x-1/2 absolute font-['Inter:Medium',sans-serif] font-medium leading-[24px] left-[126px] not-italic text-[#1d1d1d] text-[16px] text-center top-[16px] whitespace-nowrap" data-node-id="22:163">
-                        Is it safe to use this downloader?
-                      </p>
-                      <div className="absolute left-[860px] size-[16px] top-[20px]" data-name="Icon" data-node-id="22:164">
-                        <img alt="" className="absolute block max-w-none size-full" src={imgIcon9} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="border-[#ccc] border-b border-solid content-stretch flex flex-col h-[60px] items-start relative shrink-0 w-full" data-name="Container" data-node-id="22:166">
-                <div className="content-stretch flex h-[56px] items-start relative shrink-0 w-full" data-name="Primitive.h3" data-node-id="22:167">
-                  <div className="flex-[1_0_0] h-[56px] min-h-px min-w-px relative" data-name="Primitive.button" data-node-id="22:168">
-                    <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-                      <p className="-translate-x-1/2 absolute font-['Inter:Medium',sans-serif] font-medium leading-[24px] left-[119.5px] not-italic text-[#1d1d1d] text-[16px] text-center top-[16px] whitespace-nowrap" data-node-id="22:169">
-                        What platforms are supported?
-                      </p>
-                      <div className="absolute left-[860px] size-[16px] top-[20px]" data-name="Icon" data-node-id="22:170">
-                        <img alt="" className="absolute block max-w-none size-full" src={imgIcon9} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="border-[#ccc] border-b border-solid content-stretch flex flex-col h-[60px] items-start relative shrink-0 w-full" data-name="Container" data-node-id="22:172">
-                <div className="content-stretch flex h-[56px] items-start relative shrink-0 w-full" data-name="Primitive.h3" data-node-id="22:173">
-                  <div className="flex-[1_0_0] h-[56px] min-h-px min-w-px relative" data-name="Primitive.button" data-node-id="22:174">
-                    <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-                      <p className="-translate-x-1/2 absolute font-['Inter:Medium',sans-serif] font-medium leading-[24px] left-[150.5px] not-italic text-[#1d1d1d] text-[16px] text-center top-[16px] whitespace-nowrap" data-node-id="22:175">
-                        Can I download content in high quality?
-                      </p>
-                      <div className="absolute left-[860px] size-[16px] top-[20px]" data-name="Icon" data-node-id="22:176">
-                        <img alt="" className="absolute block max-w-none size-full" src={imgIcon9} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="border-[#ccc] border-b border-solid content-stretch flex flex-col h-[60px] items-start relative shrink-0 w-full" data-name="Container" data-node-id="22:178">
-                <div className="content-stretch flex h-[56px] items-start relative shrink-0 w-full" data-name="Primitive.h3" data-node-id="22:179">
-                  <div className="flex-[1_0_0] h-[56px] min-h-px min-w-px relative" data-name="Primitive.button" data-node-id="22:180">
-                    <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-                      <p className="-translate-x-1/2 absolute font-['Inter:Medium',sans-serif] font-medium leading-[24px] left-[130.5px] not-italic text-[#1d1d1d] text-[16px] text-center top-[16px] whitespace-nowrap" data-node-id="22:181">
-                        Why is my download not working?
-                      </p>
-                      <div className="absolute left-[860px] size-[16px] top-[20px]" data-name="Icon" data-node-id="22:182">
-                        <img alt="" className="absolute block max-w-none size-full" src={imgIcon9} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                );
+              })}
             </div>
           </div>
         </div>
-        <div className="bg-[#f4f1f8] content-stretch flex flex-col gap-[var(--s,40px)] items-center relative shrink-0 w-full" data-node-id="27:679">
-          <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-[563px]" data-node-id="27:680">
-            <div className="flex flex-col font-['Inter:Semi_Bold',sans-serif] font-semibold justify-center leading-[0] relative shrink-0 text-[#2d2d2d] text-[24px] whitespace-nowrap" data-node-id="27:681">
+        <div className="bg-[#f4f1f8] content-stretch flex flex-col gap-[40px] items-center relative shrink-0 w-full px-4 lg:px-0" data-node-id="27:679">
+          <div className="content-stretch flex flex-col gap-[12px] items-center not-italic relative shrink-0 text-center w-full max-w-[563px]" data-node-id="27:680">
+            <div className="flex flex-col font-['Inter:Semi_Bold',sans-serif] font-semibold justify-center leading-[0] relative shrink-0 text-[#2d2d2d] text-[clamp(1.1rem,4vw,1.5rem)]" data-node-id="27:681">
               <p className="leading-[normal]">Help Us Improve</p>
             </div>
-            <p className="font-['Inter:Regular',sans-serif] font-normal leading-[25.6px] relative shrink-0 text-[#404040] text-[16px] w-[448px]" data-node-id="27:682">
+            <p className="font-['Inter:Regular',sans-serif] font-normal leading-[25.6px] relative shrink-0 text-[#404040] text-[16px] w-full max-w-[448px]" data-node-id="27:682">
               Let us know what you love and what we can do better. Your feedback helps us enhance our platform for everyone.
             </p>
           </div>
-          <div className="bg-[#ece8f5] content-stretch flex flex-col gap-[var(--s,40px)] items-center overflow-clip px-[var(--xxxl,24px)] py-[var(--s,40px)] relative rounded-[var(--xs,20px)] shrink-0 w-[660px]" data-node-id="27:684">
-            <p className="font-['Figtree:SemiBold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[20px] text-center whitespace-nowrap" data-node-id="27:685">
+          <div className="bg-[#ece8f5] content-stretch flex flex-col gap-[40px] items-center overflow-clip px-4 lg:px-[24px] py-[40px] relative rounded-[20px] shrink-0 w-full max-w-[660px]" data-node-id="27:684">
+            <p className="font-['Figtree:SemiBold',sans-serif] font-semibold leading-[normal] relative shrink-0 text-[#2d2d2d] text-[20px] text-center" data-node-id="27:685">
               Leave a Review
             </p>
-            <div className="content-stretch flex flex-col gap-[var(--xs,20px)] items-start relative shrink-0 w-full" data-node-id="27:686">
-              <div className="content-stretch flex flex-col items-start relative shrink-0 w-full" data-node-id="27:687">
-                <div className="content-stretch flex flex-col gap-[var(--xxs,0px)] items-start relative shrink-0 w-full" data-node-id="27:688">
-                  <div className="content-stretch flex gap-[var(--xs,20px)] items-center relative shrink-0 w-full" data-node-id="27:689">
-                    <div className="flex flex-[1_0_0] flex-row items-center self-stretch">
-                      <div className="content-stretch flex flex-[1_0_0] flex-col gap-[var(--sds-size-space-200,8px)] h-full items-start min-h-px min-w-px relative" data-node-id="27:690">
-                        <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#606060] text-[14px] w-full" data-node-id="27:691">
-                          Your Name*
-                        </p>
-                        <div className="bg-white h-[48px] rounded-[8px] shrink-0 w-full" data-node-id="27:692" />
-                      </div>
-                    </div>
-                    <div className="content-stretch flex flex-[1_0_0] flex-col gap-[var(--sds-size-space-200,8px)] items-start min-h-px min-w-px relative" data-node-id="27:694">
-                      <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#606060] text-[14px] w-full" data-node-id="27:695">
-                        Your Email*
-                      </p>
-                      <div className="bg-white h-[48px] rounded-[8px] shrink-0 w-full" data-node-id="27:696" />
-                    </div>
-                  </div>
-                </div>
+            <div className="w-full flex flex-col gap-5" data-node-id="27:686">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 w-full" data-node-id="27:689">
+                <label className="w-full flex flex-col gap-2" data-node-id="27:690">
+                  <span className="font-['Inter:Medium',sans-serif] font-medium text-[#606060] text-[14px] leading-[20px]">Your Name*</span>
+                  <input
+                    type="text"
+                    className="w-full h-12 rounded-[8px] bg-white border border-[#d1d3d9] px-3 text-[#404040] text-[14px] outline-none"
+                    placeholder=""
+                    aria-label="Your Name"
+                    data-node-id="27:692"
+                  />
+                </label>
+                <label className="w-full flex flex-col gap-2" data-node-id="27:694">
+                  <span className="font-['Inter:Medium',sans-serif] font-medium text-[#606060] text-[14px] leading-[20px]">Your Email*</span>
+                  <input
+                    type="email"
+                    className="w-full h-12 rounded-[8px] bg-white border border-[#d1d3d9] px-3 text-[#404040] text-[14px] outline-none"
+                    placeholder=""
+                    aria-label="Your Email"
+                    data-node-id="27:696"
+                  />
+                </label>
               </div>
-              <div className="content-stretch flex flex-col items-start relative shrink-0 w-full" data-name="textarea" data-node-id="27:698">
-                <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full" data-node-id="27:699">
-                  <p className="font-['Inter:Medium',sans-serif] font-medium leading-[25.6px] not-italic relative shrink-0 text-[#606060] text-[14px] whitespace-nowrap" data-node-id="27:700">
-                    Your message
-                  </p>
-                  <div className="bg-white content-stretch flex h-[160px] items-start px-[12px] py-[8px] relative rounded-[12px] shrink-0 w-full" data-name="textarea" data-node-id="27:701">
-                    <p className="flex-[1_0_0] font-['Inter:Regular',sans-serif] font-normal leading-[20px] min-h-px min-w-px not-italic relative text-[#94a3b8] text-[14px]" data-node-id="27:702">
-                      Type your message here
-                    </p>
-                  </div>
-                </div>
-              </div>
+
+              <label className="w-full flex flex-col gap-2" data-node-id="27:698">
+                <span className="font-['Inter:Medium',sans-serif] font-medium text-[#606060] text-[14px] leading-[20px]">Your message</span>
+                <textarea
+                  className="w-full h-40 rounded-[12px] bg-white border border-[#d1d3d9] px-3 py-2 text-[#404040] text-[14px] leading-[20px] outline-none resize-none"
+                  placeholder="Type your message here"
+                  aria-label="Your message"
+                  data-node-id="27:701"
+                />
+              </label>
             </div>
             <div className="content-stretch flex flex-col gap-[var(--m,12px)] items-center justify-center relative shrink-0 w-full" data-node-id="27:703">
               <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#606060] text-[14px] text-center w-full" data-node-id="27:704">
                 Your Rating*
               </p>
               <div className="content-stretch flex gap-[var(--xxs,6px)] items-center justify-center relative shrink-0 w-full" data-node-id="27:705">
-                <div className="relative shrink-0 size-[26px]" data-node-id="27:706">
-                  <div className="absolute inset-[8.6%_10.43%_15.75%_10.43%]">
-                    <img alt="" className="block max-w-none size-full" src={imgStar1} />
-                  </div>
-                </div>
-                <div className="relative shrink-0 size-[26px]" data-node-id="27:707">
-                  <div className="absolute inset-[8.6%_10.43%_15.75%_10.43%]">
-                    <img alt="" className="block max-w-none size-full" src={imgStar1} />
-                  </div>
-                </div>
-                <div className="relative shrink-0 size-[26px]" data-node-id="27:708">
-                  <div className="absolute inset-[8.6%_10.43%_15.75%_10.43%]">
-                    <img alt="" className="block max-w-none size-full" src={imgStar1} />
-                  </div>
-                </div>
-                <div className="relative shrink-0 size-[26px]" data-node-id="27:709">
-                  <div className="absolute inset-[8.6%_10.43%_15.75%_10.43%]">
-                    <img alt="" className="block max-w-none size-full" src={imgStar1} />
-                  </div>
-                </div>
-                <div className="relative shrink-0 size-[26px]" data-node-id="27:710">
-                  <div className="absolute inset-[8.6%_10.43%_15.75%_10.43%]">
-                    <img alt="" className="block max-w-none size-full" src={imgStar1} />
-                  </div>
-                </div>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <button key={i} type="button" className="size-[26px] shrink-0" aria-label={`Rate ${i + 1} star`}>
+                    <svg viewBox="0 0 26 26" className="block size-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M13 3.2L15.9 9.1L22.4 10.1L17.7 14.7L18.8 21.2L13 18.1L7.2 21.2L8.3 14.7L3.6 10.1L10.1 9.1L13 3.2Z"
+                        fill="#9A9AA6"
+                        stroke="#83838F"
+                        strokeWidth="1"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                ))}
               </div>
             </div>
             <div className="bg-[#6f40dd] content-stretch flex items-center justify-center px-[16px] py-[12px] relative rounded-[33px] shrink-0 w-full" data-node-id="27:719">
@@ -1711,81 +1571,85 @@ export default function Desktop() {
             </div>
           </div>
         </div>
-        <div className="bg-[#f4f1f8] border-[#ccc] border-solid border-t h-[376px] overflow-clip relative shrink-0 w-full" data-name="FAQ" data-node-id="22:184">
-          <p className="-translate-x-1/2 absolute font-['Bricolage_Grotesque:Bold',sans-serif] font-bold h-[32px] leading-[24px] left-[108px] text-[#6f40dd] text-[36px] text-center top-[63.5px] w-[88px]" data-node-id="22:185" style={{ fontVariationSettings: "'opsz' 14, 'wdth' 100" }}>
-            Logo
-          </p>
-          <div className="absolute content-stretch flex flex-col gap-[8px] items-start leading-[24px] left-[776px] not-italic top-[63.5px]" data-node-id="22:186">
-            <p className="font-['Inter:Medium',sans-serif] font-medium min-w-full relative shrink-0 text-[#1d1d1d] text-[16px] w-[min-content]" data-node-id="22:187">
-              Home
+        <footer className="bg-[#f4f1f8] border-[#ccc] border-solid border-t h-auto lg:h-[376px] overflow-visible lg:overflow-clip relative shrink-0 w-full px-4 lg:px-16 py-8 lg:py-0" data-name="FAQ" data-node-id="22:184">
+          <div className="flex flex-col lg:block">
+            <p className="lg:-translate-x-1/2 lg:absolute font-['Bricolage_Grotesque:Bold',sans-serif] font-bold leading-[24px] lg:left-[108px] text-[#6f40dd] text-[28px] lg:text-[36px] lg:top-[63.5px] mb-4 lg:mb-0" data-node-id="22:185" style={{ fontVariationSettings: "'opsz' 14, 'wdth' 100" }}>
+              Logo
             </p>
-            <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px] whitespace-nowrap" data-node-id="22:188">
-              How it works
+            <p className="lg:absolute font-['Inter:Regular',sans-serif] font-normal leading-[24px] lg:left-[64px] not-italic text-[#1d1d1d] text-[14px] lg:top-[111.5px] w-full lg:w-[469px] mb-6 lg:mb-0" data-node-id="22:196">
+              Designed for creators and teams, this platform provides structured, high-performing prompts for AI image generation. Discover, reuse, and apply prompts that improve output quality and reduce trial and error.
             </p>
-            <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px] text-center whitespace-nowrap" data-node-id="22:189">
-              About us
-            </p>
-            <p className="font-['Inter:Regular',sans-serif] font-normal min-w-full relative shrink-0 text-[#404040] text-[14px] w-[min-content]" data-node-id="22:190">
-              Benefits
-            </p>
-            <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px] whitespace-nowrap" data-node-id="22:191">
-              Why choose us
-            </p>
-            <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px] whitespace-nowrap" data-node-id="27:513">
-              Features
-            </p>
-            <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px] whitespace-nowrap" data-node-id="27:514">
-              Faq
-            </p>
-            <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px] whitespace-nowrap" data-node-id="27:515">
-              Reviews
-            </p>
-          </div>
-          <div className="absolute content-stretch flex flex-col gap-[8px] items-start leading-[24px] left-[997px] not-italic top-[63.5px]" data-node-id="22:192">
-            <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#1d1d1d] text-[16px] text-center whitespace-nowrap" data-node-id="22:193">
-              Know About us
-            </p>
-            <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px] text-center whitespace-nowrap" data-node-id="22:194">
-              Terms and conditions
-            </p>
-            <p className="font-['Inter:Regular',sans-serif] font-normal min-w-full relative shrink-0 text-[#404040] text-[14px] w-[min-content]" data-node-id="22:195">
-              Privacy policy
-            </p>
-          </div>
-          <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[24px] left-[64px] not-italic text-[#1d1d1d] text-[14px] top-[111.5px] w-[469px]" data-node-id="22:196">
-            Designed for creators and teams, this platform provides structured, high-performing prompts for AI image generation. Discover, reuse, and apply prompts that improve output quality and reduce trial and error.
-          </p>
-          <div className="absolute content-stretch flex flex-col gap-[16px] items-start left-[1260px] top-[65.5px] w-[116px]" data-node-id="22:197">
-            <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#1d1d1d] text-[16px] w-full" data-node-id="22:198">
-              Contact us
-            </p>
-            <div className="content-stretch flex gap-[12px] items-center relative shrink-0 w-full" data-node-id="22:199">
-              <div className="relative shrink-0 size-[20px]" data-name="Outline/Brands/Twitter" data-node-id="22:200">
-                <div className="absolute inset-[13.59%_5.21%_12.37%_5.21%]" data-name="Icon" data-node-id="I22:200;71:153">
-                  <img alt="" className="absolute block max-w-none size-full" src={imgIcon10} />
-                </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:block gap-6 lg:gap-0 mb-6 lg:mb-0">
+              <div className="lg:absolute content-stretch flex flex-col gap-[8px] items-start leading-[24px] lg:left-[776px] not-italic lg:top-[63.5px]" data-node-id="22:186">
+                <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#1d1d1d] text-[16px]" data-node-id="22:187">
+                  Home
+                </p>
+                <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px]" data-node-id="22:188">
+                  How it works
+                </p>
+                <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px]" data-node-id="22:189">
+                  About us
+                </p>
+                <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px]" data-node-id="22:190">
+                  Benefits
+                </p>
+                <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px]" data-node-id="22:191">
+                  Why choose us
+                </p>
+                <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px]" data-node-id="27:513">
+                  Features
+                </p>
+                <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px]" data-node-id="27:514">
+                  Faq
+                </p>
+                <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px]" data-node-id="27:515">
+                  Reviews
+                </p>
               </div>
-              <div className="relative shrink-0 size-[20px]" data-name="Outline/Brands/Instagram" data-node-id="22:201">
-                <div className="absolute inset-[10.59%_10.66%]" data-name="Icon" data-node-id="I22:201;71:168">
-                  <img alt="" className="absolute block max-w-none size-full" src={imgIcon11} />
-                </div>
+              <div className="lg:absolute content-stretch flex flex-col gap-[8px] items-start leading-[24px] lg:left-[997px] not-italic lg:top-[63.5px]" data-node-id="22:192">
+                <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#1d1d1d] text-[16px]" data-node-id="22:193">
+                  Know About us
+                </p>
+                <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px]" data-node-id="22:194">
+                  Terms and conditions
+                </p>
+                <p className="font-['Inter:Regular',sans-serif] font-normal relative shrink-0 text-[#404040] text-[14px]" data-node-id="22:195">
+                  Privacy policy
+                </p>
               </div>
-              <div className="relative shrink-0 size-[20px]" data-name="Outline/Brands/Instagram" data-node-id="22:202">
-                <div className="absolute inset-[9.38%_26.25%_9.37%_26.25%]" data-name="Icon" data-node-id="I22:202;71:164">
-                  <img alt="" className="absolute block max-w-none size-full" src={imgIcon12} />
-                </div>
-              </div>
-              <div className="relative shrink-0 size-[20px]" data-name="Outline/Brands/Linkedin" data-node-id="22:203">
-                <div className="absolute inset-[5.21%_5.21%_9.37%_9.38%]" data-name="Icon" data-node-id="I22:203;71:156">
-                  <img alt="" className="absolute block max-w-none size-full" src={imgIcon13} />
+              <div className="lg:absolute content-stretch flex flex-col gap-[16px] items-start lg:left-[1260px] lg:top-[65.5px] w-full lg:w-[116px]" data-node-id="22:197">
+                <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#1d1d1d] text-[16px]" data-node-id="22:198">
+                  Contact us
+                </p>
+                <div className="content-stretch flex gap-[12px] items-center relative shrink-0" data-node-id="22:199">
+                  <div className="relative shrink-0 size-[20px]" data-name="Outline/Brands/Twitter" data-node-id="22:200">
+                    <div className="absolute inset-[13.59%_5.21%_12.37%_5.21%]" data-name="Icon" data-node-id="I22:200;71:153">
+                      <img alt="" className="absolute block max-w-none size-full" src={imgIcon10} />
+                    </div>
+                  </div>
+                  <div className="relative shrink-0 size-[20px]" data-name="Outline/Brands/Instagram" data-node-id="22:201">
+                    <div className="absolute inset-[10.59%_10.66%]" data-name="Icon" data-node-id="I22:201;71:168">
+                      <img alt="" className="absolute block max-w-none size-full" src={imgIcon11} />
+                    </div>
+                  </div>
+                  <div className="relative shrink-0 size-[20px]" data-name="Outline/Brands/Instagram" data-node-id="22:202">
+                    <div className="absolute inset-[9.38%_26.25%_9.37%_26.25%]" data-name="Icon" data-node-id="I22:202;71:164">
+                      <img alt="" className="absolute block max-w-none size-full" src={imgIcon12} />
+                    </div>
+                  </div>
+                  <div className="relative shrink-0 size-[20px]" data-name="Outline/Brands/Linkedin" data-node-id="22:203">
+                    <div className="absolute inset-[5.21%_5.21%_9.37%_9.38%]" data-name="Icon" data-node-id="I22:203;71:156">
+                      <img alt="" className="absolute block max-w-none size-full" src={imgIcon13} />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+            <p className="lg:absolute font-['Inter:Medium',sans-serif] font-medium leading-[normal] lg:left-[64px] not-italic text-[#606060] text-[14px] lg:top-[199.5px] text-center lg:text-left pt-4 lg:pt-0 border-t lg:border-t-0 border-[#ccc]" data-node-id="22:204">
+              @2026 brandname. All Right Reserved
+            </p>
           </div>
-          <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[normal] left-[calc(50%-656px)] not-italic text-[#606060] text-[14px] top-[199.5px] whitespace-nowrap" data-node-id="22:204">
-            @2026 brandname. All Right Reserved
-          </p>
-        </div>
+        </footer>
       </div>
     </div>
   );
