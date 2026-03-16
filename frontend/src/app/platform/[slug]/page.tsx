@@ -12,6 +12,7 @@ import { platformConfigs } from "@/lib/platforms";
 import { detectContentTab } from "@/lib/url-tab-detect";
 import { detectPlatformSlugFromUrl } from "@/lib/platform-detect";
 import { useTranslation } from "@/lib/i18n";
+import SharedLandingContent from "@/components/SharedLandingContent";
 import Hls from "hls.js";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
@@ -466,9 +467,10 @@ export default function PlatformPage({ params }: PlatformPageProps) {
       : undefined;
 
   return (
-    <div className="flex flex-col items-center px-4 pt-16 pb-24">
-      {/* Header with platform icon */}
-      <div className="flex flex-col items-center gap-3 max-w-[855px] mb-10 w-full">
+    <>
+      <div className="flex flex-col items-center px-4 pt-16 pb-12">
+        {/* Header with platform icon */}
+        <div className="flex flex-col items-center gap-3 max-w-[855px] mb-10 w-full">
         <div className="flex items-center gap-3">
           <span className="shrink-0">{platform.icon}</span>
           <h1 className="text-[24px] sm:text-[32px] font-semibold text-foreground text-center leading-normal">
@@ -688,6 +690,16 @@ export default function PlatformPage({ params }: PlatformPageProps) {
           {errorMessage}
         </p>
       )}
-    </div>
+      </div>
+
+      <div className="home-figma-page w-full flex justify-center pb-24 shrink-0 mt-8 md:mt-12 lg:mt-20">
+        <div
+          className="content-stretch flex flex-col gap-[60px] md:gap-[80px] lg:gap-[120px] items-center relative shrink-0 w-full max-w-[1440px] min-w-0 px-4 md:px-6 lg:px-0"
+          data-node-id="35:319"
+        >
+          <SharedLandingContent />
+        </div>
+      </div>
+    </>
   );
 }
