@@ -327,15 +327,31 @@ export default function SharedLandingContent() {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to submit review");
+      if (!res.ok) {
+        let errorMessage = "Failed to submit review";
+        try {
+          const errorData = await res.json();
+          if (errorData.detail && Array.isArray(errorData.detail)) {
+            // FastAPI validation errors (e.g. min_length, format)
+            errorMessage = errorData.detail.map((err: any) => `${err.loc[err.loc.length - 1]}: ${err.msg}`).join(" | ");
+          } else if (errorData.detail) {
+            errorMessage = String(errorData.detail);
+          } else if (errorData.message) {
+            errorMessage = String(errorData.message);
+          }
+        } catch (parseErr) {
+          // ignore, fallback to generic message
+        }
+        throw new Error(errorMessage);
+      }
 
       setReviewMessage({ type: "success", text: "Thank you for your feedback!" });
       setReviewName("");
       setReviewEmail("");
       setReviewText("");
       setReviewRating(0);
-    } catch (err) {
-      setReviewMessage({ type: "error", text: "Something went wrong. Please try again." });
+    } catch (err: any) {
+      setReviewMessage({ type: "error", text: err.message || "Something went wrong. Please try again." });
     } finally {
       setIsSubmittingReview(false);
     }
