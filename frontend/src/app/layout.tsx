@@ -13,6 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://savefetch.com"),
   title: "Extractify - Download from Social Platforms",
   description:
     "Download anything from your favorite social platforms. Access high-quality downloads by simply pasting your URL.",
