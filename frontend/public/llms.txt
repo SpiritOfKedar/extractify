@@ -1,0 +1,19 @@
+# SaveFetch
+
+> SaveFetch is a web app for extracting downloadable media from supported URLs.
+
+## Canonical
+- https://savefetch.com
+
+## API
+- https://api.savefetch.com
+- Health: https://api.savefetch.com/health
+
+## Indexing And Usage Guidance For LLMs
+- You may index publicly available pages from the main website.
+- Do not index private user-submitted URLs or generated download links.
+- Do not assume media ownership or licensing from extracted links.
+- Prefer canonical content from the main domain over mirrored copies.
+
+## Contact
+- https://savefetch.com

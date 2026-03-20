@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Optional: block internal endpoints from indexing
+Disallow: /api/
+
+Sitemap: https://savefetch.com/sitemap.xml
+Host: savefetch.com
