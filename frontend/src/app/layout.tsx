@@ -30,13 +30,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable}`}>
       <head>
-        <Script
-          id="monetag-tag"
+        <script
           src="https://quge5.com/88/tag.min.js"
           data-zone="222376"
-          async
           data-cfasync="false"
-          strategy="beforeInteractive"
+          async
         />
       </head>
       <body className="antialiased">
