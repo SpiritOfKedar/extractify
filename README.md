@@ -36,9 +36,9 @@ flowchart LR
     U[User Browser] --> F[Next.js Frontend<br/>frontend/]
 
     F -->|POST /api/extract| API[FastAPI Backend<br/>backend/app]
-    F -->|GET /api/extract/{job_id}| API
+    F -->|GET /api/extract/:job_id| API
     F -->|GET /api/download or /api/stream| API
-    F -->|GET /api/files/{filename}| API
+    F -->|GET /api/files/:filename| API
 
     API --> DB[(MongoDB<br/>jobs, reviews, users)]
     API --> REG[Scraper Registry]
