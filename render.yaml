@@ -17,7 +17,8 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: standard          # Playwright + Chromium needs ≥ 2 GB RAM
-    healthCheckPath: /health
+    healthCheckPath: /ready
+    # Migrations run in start.sh (alembic upgrade head) before uvicorn.
     startCommand: bash start.sh
     envVars:
       # ── App ────────────────────────────────────
@@ -28,11 +29,9 @@ services:
       - key: CORS_ORIGINS
         sync: false         # set in dashboard, e.g. https://extractify.com
 
-      # ── MongoDB Atlas ──────────────────────────
-      - key: MONGO_URI
-        sync: false         # paste your Atlas connection string
-      - key: MONGO_DB_NAME
-        value: extractify
+      # ── PostgreSQL (Neon DB) ────────────────────
+      - key: DATABASE_URL
+        sync: false         # paste your Neon connection string (postgresql+asyncpg://...)
 
       # ── Instagram ──────────────────────────────
       - key: INSTAGRAM_SESSION_ID

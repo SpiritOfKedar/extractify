@@ -3,7 +3,7 @@
 # Extractify Backend – Startup Script
 #
 # 1. Start the bgutil PO Token server (YouTube anti-bot bypass)
-# 2. Wait for the server to be ready
+# 2. Run database migrations (Alembic)
 # 3. Start the FastAPI application
 # ============================================================
 
@@ -22,6 +22,9 @@ if kill -0 $BGUTIL_PID 2>/dev/null; then
 else
     echo "[start.sh] WARNING: bgutil server failed to start — YouTube extraction may fail"
 fi
+
+echo "[start.sh] Running database migrations..."
+alembic upgrade head
 
 echo "[start.sh] Starting FastAPI (uvicorn) on port ${PORT:-8000}..."
 exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}

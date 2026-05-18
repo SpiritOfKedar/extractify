@@ -14,13 +14,13 @@ cp .env.example .env
 ## Architecture
 
 ```
-┌────────────┐      ┌──────────────┐      ┌───────────┐
-│  Frontend   │─────▶│   Backend    │─────▶│  MongoDB   │
-│  Next.js    │:3000 │   FastAPI    │:8000 │  mongo:7   │:27017
-└────────────┘      └──────────────┘      └───────────┘
-          ▲                  ▲                    ▲
-          └──────────────────┴────────────────────┘
-                      app-network (bridge)
+┌────────────┐      ┌──────────────┐      ┌─────────────┐
+│  Frontend   │─────▶│   Backend    │─────▶│  PostgreSQL  │
+│  Next.js    │:3000 │   FastAPI    │:8000 │  (Neon DB)   │
+└────────────┘      └──────────────┘      └─────────────┘
+          ▲                  ▲
+          └──────────────────┘
+                  app-network (bridge)
 ```
 
 All services communicate on a shared `app-network` bridge network.
@@ -28,6 +28,9 @@ The frontend calls the backend via `http://backend:8000` for server-side
 requests. Browser-side (client) calls use the `NEXT_PUBLIC_API_BASE_URL`
 env var — set it to `http://localhost:8000` locally, or your public domain
 in production.
+
+In production, the database is hosted on **Neon DB** (serverless PostgreSQL).
+In development, `docker-compose.dev.yml` spins up a local PostgreSQL container.
 
 ---
 
@@ -48,12 +51,14 @@ The app will be available at:
 - **Frontend:** http://localhost:3000
 - **Backend API:** http://localhost:8000
 - **Health check:** http://localhost:8000/health
+- **Readiness check:** http://localhost:8000/ready
 
 ---
 
 ## Development Mode
 
-Development mode mounts source code into containers for hot-reload.
+Development mode mounts source code into containers for hot-reload
+and uses a local PostgreSQL container instead of Neon.
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
@@ -75,7 +80,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 | `docker compose logs -f frontend` | Tail frontend logs |
 | `docker compose ps` | List running services and health status |
 | `docker compose exec backend bash` | Shell into the backend container |
-| `docker compose exec mongo mongosh` | Open a MongoDB shell |
+| `docker compose exec postgres psql -U postgres extractify` | Open a PostgreSQL shell |
 | `docker compose restart backend` | Restart just the backend |
 
 ### Automated Backend Tests (Pytest)
@@ -95,32 +100,33 @@ docker exec extractify-backend-1 pytest tests/download_security_test.py
 
 ---
 
-## MongoDB Access
+## PostgreSQL Access
 
-The MongoDB instance is configured with authentication via `MONGO_USER` / `MONGO_PASSWORD` in `.env`.
+In development mode, a local PostgreSQL container is available.
 
-**Connect with mongosh (from host):**
+**Connect with psql (from host):**
 ```bash
-mongosh "mongodb://extractify:changeme@localhost:27017/extractify?authSource=admin"
+psql "postgresql://postgres:postgres@localhost:5432/extractify"
 ```
 
-**Connect with MongoDB Compass:**
-```
-mongodb://extractify:changeme@localhost:27017/extractify?authSource=admin
-```
+**Production (Neon DB):**
+Use the connection string from your Neon dashboard. Set it as `DATABASE_URL` in `.env`.
 
 ---
 
-## Running Migrations / DB Seeding
+## Running Migrations / DB Setup
 
-This project uses Beanie ODM. Document models are auto-registered on startup
-(see `app/core/database.py`). There is no manual migration step — Beanie
-handles schema changes automatically for MongoDB.
+Schema changes are managed with **Alembic**. Migrations run automatically in production via [`backend/start.sh`](backend/start.sh) before uvicorn starts.
 
-If you need to seed data:
 ```bash
-docker compose exec backend python -m app.scripts.seed
+# Apply all pending migrations (local or inside container)
+cd backend && alembic upgrade head
+
+# Create a new migration after model changes
+cd backend && alembic revision --autogenerate -m "describe change"
 ```
+
+In development, `AUTO_CREATE_TABLES=true` (default) can still auto-create tables via SQLAlchemy for convenience. In production, rely on Alembic only (`AUTO_CREATE_TABLES=false` by default when `APP_ENV=production`).
 
 ---
 
@@ -130,9 +136,7 @@ See [.env.example](.env.example) for the full list. Key variables:
 
 | Variable | Description | Default |
 |---|---|---|
-| `MONGO_USER` | MongoDB root username | `extractify` |
-| `MONGO_PASSWORD` | MongoDB root password | `changeme` |
-| `MONGO_DB_NAME` | Database name | `extractify` |
+| `DATABASE_URL` | PostgreSQL connection string (Neon pooled endpoint + `?ssl=require`) | `postgresql+asyncpg://postgres:postgres@localhost:5432/extractify` |
 | `NEXT_PUBLIC_API_BASE_URL` | API URL for browser-side fetch | `http://localhost:8000` |
 | `BACKEND_PORT` | Host port for backend | `8000` |
 | `FRONTEND_PORT` | Host port for frontend | `3000` |
@@ -150,9 +154,10 @@ docker compose up -d --build frontend  # rebuild only frontend
 
 ## Troubleshooting
 
-**Backend won't start / "mongodb_connection_failed":**
-- Check that the `mongo` service is healthy: `docker compose ps`
-- Verify `MONGO_USER` and `MONGO_PASSWORD` match in `.env`
+**Backend won't start / "postgresql_connection_failed":**
+- Check that `DATABASE_URL` is set correctly in `.env`
+- For local dev, ensure the `postgres` service is healthy: `docker compose ps`
+- For production, verify Neon DB is accessible
 
 **Frontend build fails with "Could not find a production build":**
 - Ensure `output: "standalone"` is set in `frontend/next.config.ts`

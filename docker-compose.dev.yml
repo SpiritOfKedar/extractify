@@ -6,11 +6,25 @@
 # of production builds.
 
 services:
-  # ── MongoDB ──────────────────────────────────────
-  # Expose default port for local DB GUIs (Compass, mongosh, etc.)
-  mongo:
+  # ── PostgreSQL ──────────────────────────────────
+  # Local dev database (production uses Neon cloud DB)
+  postgres:
+    image: postgres:16-alpine
     ports:
-      - "27017:27017"
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: extractify
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d extractify"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   # ── FastAPI Backend ──────────────────────────────
   backend:
@@ -21,10 +35,14 @@ services:
     volumes:
       - ./backend:/app
     # Override CMD to enable auto-reload on code changes
-    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    command: ["bash", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"]
     environment:
       APP_ENV: development
       DEBUG: "true"
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/extractify
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   # ── Next.js Frontend ─────────────────────────────
   frontend:
@@ -42,3 +60,6 @@ services:
     environment:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
       NEXT_PUBLIC_GTM_ID: ${NEXT_PUBLIC_GTM_ID:-}
+
+volumes:
+  pgdata:

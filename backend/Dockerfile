@@ -51,9 +51,13 @@ RUN pip install --no-cache-dir bgutil-ytdlp-pot-provider
 
 # Install Playwright Chromium to a shared path accessible by the non-root user.
 # We skip `playwright install-deps` because it references obsolete font packages on Debian Trixie.
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-RUN playwright install chromium && \
-    chmod -R o+rx /ms-playwright
+# Using Debian's chromium instead of Playwright's download to avoid CDN issues
+RUN apt-get update && apt-get install -y --no-install-recommends chromium && \
+    rm -rf /var/lib/apt/lists/*
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
+RUN chmod -R o+rx /ms-playwright || true
 
 # Create a non-root user for security
 RUN groupadd --gid 1001 appuser && \

@@ -24,7 +24,7 @@ It accepts a public URL from supported platforms, detects the content type, runs
 ## What This Repo Contains
 
 - `frontend/`: Next.js 16 + React 19 app (URL input, platform pages, previews, downloads, localization)
-- `backend/`: FastAPI + Beanie/MongoDB API (job lifecycle, scraper orchestration, secure download proxy)
+- `backend/`: FastAPI + SQLAlchemy/PostgreSQL API (job lifecycle, scraper orchestration, secure download proxy)
 - `bgutil-ytdlp-pot-provider/`: bundled upstream provider source used for YouTube PO token workflows
 - `docker-compose.yml`: production-oriented container orchestration
 - `render.yaml`: backend deployment blueprint for Render
@@ -40,7 +40,7 @@ flowchart LR
     F -->|GET /api/download or /api/stream| API
     F -->|GET /api/files/:filename| API
 
-    API --> DB[(MongoDB<br/>jobs, reviews, users)]
+    API --> DB[(PostgreSQL / Neon DB<br/>jobs, reviews, users)]
     API --> REG[Scraper Registry]
 
     REG --> DS[Dedicated Scrapers<br/>instagram, youtube, facebook, etc.]
@@ -65,7 +65,7 @@ sequenceDiagram
     participant User as Browser User
     participant FE as Frontend (Next.js)
     participant BE as Backend (FastAPI)
-    participant DB as MongoDB
+    participant DB as PostgreSQL
     participant SCR as Scraper
 
     User->>FE: Paste platform URL and submit
@@ -141,7 +141,7 @@ Notes:
 |---|---|
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
 | Backend API | FastAPI, Pydantic v2, Uvicorn |
-| Data | MongoDB, Motor, Beanie ODM |
+| Data | PostgreSQL (Neon DB), SQLAlchemy async, asyncpg |
 | Scraping | yt-dlp, Playwright, httpx, BeautifulSoup |
 | Media tooling | ffmpeg (for merge/download workflows) |
 | Infra | Docker, Docker Compose, Render blueprint |
@@ -154,7 +154,7 @@ extractify/
 │  ├─ app/
 │  │  ├─ routes/        # API endpoints: extract, download, files, health, reviews
 │  │  ├─ services/      # Scraper registry + platform scrapers
-│  │  ├─ models/        # Beanie document models
+│  │  ├─ models/        # SQLAlchemy ORM models
 │  │  └─ utils/         # browser pool, yt-dlp helper, URL detection
 │  ├─ tests/            # pytest suite
 │  └─ Dockerfile
@@ -239,8 +239,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 APP_ENV=production
 DEBUG=false
 CORS_ORIGINS=["http://localhost:3000"]
-MONGO_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority
-MONGO_DB_NAME=extractify
+DATABASE_URL=postgresql+asyncpg://user:password@ep-xxx-pooler.region.aws.neon.tech/extractify?ssl=require
 
 # Optional
 NEXT_PUBLIC_GTM_ID=
@@ -261,7 +260,8 @@ Core:
 - `APP_ENV` (`development` or `production`)
 - `APP_HOST`, `APP_PORT`, `DEBUG`
 - `CORS_ORIGINS`
-- `MONGO_URI`, `MONGO_DB_NAME`
+- `DATABASE_URL` (Neon pooled endpoint recommended; use `?ssl=require` for asyncpg)
+- `DATABASE_POOL_SIZE`, `DATABASE_MAX_OVERFLOW`, `DATABASE_CONNECT_RETRIES`, `DATABASE_CONNECT_RETRY_SECONDS`
 
 Optional auth/cookies:
 - `YTDLP_COOKIES_FILE`
@@ -282,7 +282,8 @@ Base URL: `http://localhost:8000`
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| `GET` | `/health` | Health + MongoDB connectivity |
+| `GET` | `/health` | Liveness probe (always 200; includes live DB status in body) |
+| `GET` | `/ready` | Readiness probe (503 when PostgreSQL is unreachable) |
 | `POST` | `/api/extract` | Create extraction job |
 | `GET` | `/api/extract/{job_id}` | Poll extraction status/result |
 | `GET` | `/api/platforms` | List supported platform metadata |
@@ -358,17 +359,18 @@ npm run lint
 - Backend can be deployed on Render using `render.yaml`.
 - Frontend can be deployed separately (for example Vercel, Render, or container platform).
 - In production, configure:
-  - `MONGO_URI` to a managed MongoDB instance
+  - `DATABASE_URL` to your Neon **pooled** connection string with `?ssl=require`
   - `CORS_ORIGINS` to your frontend domain(s)
   - `NEXT_PUBLIC_API_BASE_URL` to your public backend URL
+  - Migrations run automatically via `start.sh` (`alembic upgrade head`)
 
 ## Troubleshooting
 
 ### Backend returns `Database is not available`
 
-- Verify `MONGO_URI` and `MONGO_DB_NAME`
-- Check MongoDB reachability from backend runtime
-- Call `GET /health` and confirm `mongo: connected`
+- Verify `DATABASE_URL` is set correctly (Neon pooled URL + `?ssl=require`)
+- Check PostgreSQL / Neon DB reachability from backend runtime
+- Call `GET /ready` (should return 200) or `GET /health` and confirm `database: connected`
 
 ### YouTube extraction fails with bot/sign-in related errors
 

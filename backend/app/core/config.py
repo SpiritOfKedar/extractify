@@ -2,6 +2,7 @@
 Extractify Backend – settings loaded from environment / .env file.
 """
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
 from typing import List
 
@@ -14,9 +15,14 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001"]
 
-    # ── MongoDB ──────────────────────────────────────
-    MONGO_URI: str = "mongodb://localhost:27017"
-    MONGO_DB_NAME: str = "extractify"
+    # ── PostgreSQL (Neon DB) ────────────────────────
+    # Local dev default; override in .env for Neon pooled endpoint.
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/extractify"
+    DATABASE_POOL_SIZE: int = 5
+    DATABASE_MAX_OVERFLOW: int = 10
+    DATABASE_CONNECT_RETRIES: int = 5
+    DATABASE_CONNECT_RETRY_SECONDS: int = 2
+    AUTO_CREATE_TABLES: bool | None = None  # resolved from APP_ENV if unset
 
     # ── Rate Limiting ────────────────────────────────
     RATE_LIMIT_PER_MINUTE: int = 30
@@ -76,6 +82,16 @@ class Settings(BaseSettings):
     TUMBLR_API_KEYS: str = ""
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
+    @model_validator(mode="after")
+    def _resolve_auto_create_tables(self) -> "Settings":
+        if self.AUTO_CREATE_TABLES is None:
+            self.AUTO_CREATE_TABLES = self.APP_ENV.lower() != "production"
+        return self
+
+    @property
+    def is_production(self) -> bool:
+        return self.APP_ENV.lower() == "production"
 
 
 settings = Settings()

@@ -13,6 +13,7 @@ thread-pool executor so the rest of the async code is unaffected.
 """
 
 import asyncio
+import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
@@ -85,6 +86,7 @@ class BrowserPool:
             self._browser = await self._pw.chromium.launch(
                 headless=True,
                 args=_BROWSER_ARGS,
+                executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"),
             )
             self._use_sync_fallback = False
             logger.info("browser_pool_started", mode="async")
@@ -116,6 +118,7 @@ class BrowserPool:
             self._sync_browser = self._sync_pw.chromium.launch(
                 headless=True,
                 args=_BROWSER_ARGS,
+                executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"),
             )
             logger.info("browser_pool_started", mode="sync_fallback")
         except (NotImplementedError, Exception) as e:

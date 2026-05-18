@@ -6,16 +6,17 @@ GET  /api/extract/{id}  → Poll job status / get results
 GET  /api/platforms      → List supported platforms (mirrors frontend config)
 """
 
-import asyncio
+import uuid
 import structlog
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
-from datetime import datetime
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from datetime import datetime, timezone
 from urllib.parse import parse_qs, unquote, urlparse
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
-from app.models.job import Job, JobStatus
+from app.models.job import Job, JobStatus, ExtractedContent, DownloadVariant, ContentType
 from app.routes.schemas import ExtractRequest, JobOut, ExtractedContentOut, VariantOut
 from app.utils.url_detect import detect_platform
-from app.core.database import is_connected
+from app.core.deps import get_db_session_factory_or_none, require_db
 
 logger = structlog.get_logger()
 
@@ -53,64 +54,72 @@ def _normalize_input_url(raw_url: str) -> str:
 # ── Background extraction helper ────────────────────────────────
 
 async def _run_extraction_background(job_id: str) -> None:
-    """Run the scraping in the background and update the job in MongoDB."""
+    """Run the scraping in the background and update the job in PostgreSQL."""
     from app.services.scrapers.registry import run_scraper
-    from app.models.job import ExtractedContent, DownloadVariant, ContentType
 
-    job = await Job.get(job_id)
-    if not job:
+    session_factory = await get_db_session_factory_or_none()
+    if session_factory is None:
+        logger.error("extraction_skipped_db_unavailable", job_id=job_id)
         return
 
-    job.status = JobStatus.PROCESSING
-    job.updated_at = datetime.utcnow()
-    await job.save()
+    async with session_factory() as session:
+        job = await session.get(Job, uuid.UUID(job_id))
+        if not job:
+            return
 
-    try:
-        result = await run_scraper(platform=job.platform, url=job.url, content_tab=job.tab)
+        job.status = JobStatus.PROCESSING.value
+        job.updated_at = datetime.now(timezone.utc)
+        await session.commit()
 
-        if not result.variants:
-            raise ValueError(
-                "No downloadable content found. "
-                "The content may be private, deleted, or require authentication."
-            )
-
-        variants = [
-            DownloadVariant(label=v.label, format=v.format, quality=v.quality,
-                            file_size_bytes=v.file_size_bytes, download_url=v.url,
-                            has_video=v.has_video, has_audio=v.has_audio)
-            for v in result.variants
-        ]
         try:
-            ct = ContentType(result.content_type)
-        except ValueError:
-            ct = ContentType.OTHER
-        job.extracted = ExtractedContent(
-            title=result.title, description=result.description,
-            author=result.author, thumbnail_url=result.thumbnail_url,
-            duration_seconds=result.duration_seconds,
-            page_count=result.page_count, content_type=ct, variants=variants,
-        )
-        job.status = JobStatus.COMPLETED
-        logger.info("extraction_completed", job_id=job_id, platform=job.platform)
-    except Exception as exc:
-        job.status = JobStatus.FAILED
-        job.error_message = str(exc)[:500]
-        logger.error("extraction_failed", job_id=job_id, error=str(exc)[:200])
-    job.updated_at = datetime.utcnow()
-    await job.save()
+            result = await run_scraper(platform=job.platform, url=job.url, content_tab=job.tab)
+
+            if not result.variants:
+                raise ValueError(
+                    "No downloadable content found. "
+                    "The content may be private, deleted, or require authentication."
+                )
+
+            variants = [
+                DownloadVariant(label=v.label, format=v.format, quality=v.quality,
+                                file_size_bytes=v.file_size_bytes, download_url=v.url,
+                                has_video=v.has_video, has_audio=v.has_audio)
+                for v in result.variants
+            ]
+            try:
+                ct = ContentType(result.content_type)
+            except ValueError:
+                ct = ContentType.OTHER
+            extracted = ExtractedContent(
+                title=result.title, description=result.description,
+                author=result.author, thumbnail_url=result.thumbnail_url,
+                duration_seconds=result.duration_seconds,
+                page_count=result.page_count, content_type=ct, variants=variants,
+            )
+            job.set_extracted(extracted)
+            job.status = JobStatus.COMPLETED.value
+            logger.info("extraction_completed", job_id=job_id, platform=job.platform)
+        except Exception as exc:
+            job.status = JobStatus.FAILED.value
+            job.error_message = str(exc)[:500]
+            logger.error("extraction_failed", job_id=job_id, error=str(exc)[:200])
+        job.updated_at = datetime.now(timezone.utc)
+        await session.commit()
 
 
 # ── POST /api/extract ───────────────────────────────────────────
 
 @router.post("/extract", response_model=JobOut, status_code=202)
-async def create_extraction(body: ExtractRequest, request: Request, background_tasks: BackgroundTasks):
+async def create_extraction(
+    body: ExtractRequest,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    session_factory: async_sessionmaker[AsyncSession] = Depends(require_db),
+):
     """
     Accept a URL, detect the platform, persist a Job, and dispatch
     extraction in the background.
     """
-    if not is_connected():
-        raise HTTPException(503, "Database is not available. Please try again later.")
-
     url = _normalize_input_url(str(body.url))
 
     # Detect platform
@@ -131,26 +140,39 @@ async def create_extraction(body: ExtractRequest, request: Request, background_t
         platform=platform,
         content_category=category,
         tab=body.tab,
-        status=JobStatus.PENDING,
+        status=JobStatus.PENDING.value,
         ip_address=request.client.host if request.client else None,
     )
-    await job.insert()
 
-    # Dispatch using FastAPI background task (no Redis/Celery needed)
-    background_tasks.add_task(_run_extraction_background, str(job.id))
+    async with session_factory() as session:
+        session.add(job)
+        await session.commit()
+        await session.refresh(job)
 
-    return _job_to_out(job)
+        # Dispatch using FastAPI background task (no Redis/Celery needed)
+        background_tasks.add_task(_run_extraction_background, str(job.id))
+
+        return _job_to_out(job)
 
 
 # ── GET /api/extract/{job_id} ───────────────────────────────────
 
 @router.get("/extract/{job_id}", response_model=JobOut)
-async def get_extraction(job_id: str):
+async def get_extraction(
+    job_id: str,
+    session_factory: async_sessionmaker[AsyncSession] = Depends(require_db),
+):
     """Poll the status of an extraction job."""
-    job = await Job.get(job_id)
-    if not job:
+    try:
+        parsed_id = uuid.UUID(job_id)
+    except ValueError:
         raise HTTPException(404, "Job not found")
-    return _job_to_out(job)
+
+    async with session_factory() as session:
+        job = await session.get(Job, parsed_id)
+        if not job:
+            raise HTTPException(404, "Job not found")
+        return _job_to_out(job)
 
 
 # ── GET /api/platforms ──────────────────────────────────────────
@@ -171,8 +193,9 @@ async def list_platforms():
 
 def _job_to_out(job: Job) -> JobOut:
     extracted = None
-    if job.extracted:
-        e = job.extracted
+    extracted_data = job.get_extracted()
+    if extracted_data:
+        e = extracted_data
         extracted = ExtractedContentOut(
             title=e.title,
             description=e.description,
@@ -200,7 +223,7 @@ def _job_to_out(job: Job) -> JobOut:
         platform=job.platform,
         content_category=job.content_category,
         tab=job.tab,
-        status=job.status.value,
+        status=job.status,
         error_message=job.error_message,
         extracted=extracted,
         created_at=job.created_at,

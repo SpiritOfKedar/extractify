@@ -55,5 +55,5 @@ class JobOut(BaseModel):
 
 class HealthOut(BaseModel):
     status: str = "ok"
-    mongo: str = "connected"
+    database: str = "connected"
     version: str = "0.1.0"

@@ -8,6 +8,7 @@
 ## API
 - https://api.savefetch.com
 - Health: https://api.savefetch.com/health
+- Readiness: https://api.savefetch.com/ready
 
 ## Indexing And Usage Guidance For LLMs
 - You may index publicly available pages from the main website.

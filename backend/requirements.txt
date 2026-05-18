@@ -3,10 +3,11 @@ fastapi==0.115.6
 uvicorn[standard]==0.34.0
 python-multipart==0.0.18
 
-# ── MongoDB ─────────────────────────────────────────
-motor==3.6.0            # async MongoDB driver
-beanie==1.27.0          # async ODM built on Motor
-# pymongo pinned by motor automatically (>=4.9,<4.10)
+# ── PostgreSQL (Neon DB) ────────────────────────────
+sqlalchemy[asyncio]==2.0.36   # async ORM
+asyncpg==0.30.0               # async PostgreSQL driver
+greenlet==3.1.1               # required by SQLAlchemy asyncio
+alembic==1.14.0               # schema migrations
 
 # ── HTTP / Scraping ────────────────────────────────
 httpx==0.28.1
@@ -32,3 +33,4 @@ structlog==24.4.0       # structured logging
 
 # ── Testing ─────────────────────────────────────────
 pytest==8.3.4
+pytest-asyncio==0.25.0

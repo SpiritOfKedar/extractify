@@ -1,14 +1,19 @@
 """
-Job document – tracks every extraction request.
+Job model – tracks every extraction request.
+Stored in PostgreSQL via SQLAlchemy async ORM.
 """
 
+import uuid
 from datetime import datetime
 from enum import Enum
 from typing import Optional, List
 
-from beanie import Document
-from pydantic import BaseModel, Field, HttpUrl
-from pymongo import ASCENDING, DESCENDING, IndexModel
+from sqlalchemy import String, Text, Index, DateTime, ForeignKey, func
+from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.orm import Mapped, mapped_column
+from pydantic import BaseModel
+
+from app.models.base import Base
 
 
 class JobStatus(str, Enum):
@@ -55,49 +60,58 @@ class ExtractedContent(BaseModel):
     variants: List[DownloadVariant] = []
 
 
-class Job(Document):
+class Job(Base):
     """
-    Root document stored in MongoDB.
+    Root table stored in PostgreSQL.
     One Job = one user extraction request.
     """
-    url: str                                       # original URL submitted
-    platform: str                                  # "instagram", "scribd", …
-    content_category: str = "social"               # "social" | "document"
-    tab: Optional[str] = None                      # e.g. "Reels", "PDFs"
-    status: JobStatus = JobStatus.PENDING
-    error_message: Optional[str] = None
+    __tablename__ = "jobs"
 
-    extracted: Optional[ExtractedContent] = None
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    url: Mapped[str] = mapped_column(Text, nullable=False)
+    platform: Mapped[str] = mapped_column(String(50), nullable=False)
+    content_category: Mapped[str] = mapped_column(String(50), default="social")
+    tab: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    status: Mapped[str] = mapped_column(
+        String(20), default=JobStatus.PENDING.value, nullable=False
+    )
+    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    # Extracted content stored as JSONB (nested Pydantic model)
+    extracted: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
 
     # ── Tracking ─────────────────────────────────────
-    user_id: Optional[str] = None                  # ObjectId ref (optional)
-    ip_address: Optional[str] = None
+    user_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    ip_address: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    # Application code sets updated_at on writes; server_onupdate covers direct SQL updates.
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        server_onupdate=func.now(),
+    )
 
-    class Settings:
-        name = "jobs"                               # MongoDB collection name
-        use_state_management = True
-        indexes = [
-            # Recent jobs by platform (platform filter + newest first)
-            IndexModel([("platform", ASCENDING), ("created_at", DESCENDING)]),
-            # Recent jobs by user; partial index avoids bloating on null user_id rows
-            IndexModel(
-                [("user_id", ASCENDING), ("created_at", DESCENDING)],
-                partialFilterExpression={"user_id": {"$type": "string"}},
-            ),
-            # Global newest jobs / time-window queries
-            IndexModel([("created_at", DESCENDING)]),
-        ]
+    __table_args__ = (
+        Index("ix_jobs_platform_created", "platform", "created_at"),
+        Index("ix_jobs_user_created", "user_id", "created_at"),
+        Index("ix_jobs_created", "created_at"),
+    )
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "url": "https://www.instagram.com/reel/xyz",
-                "platform": "instagram",
-                "content_category": "social",
-                "tab": "Reels",
-                "status": "pending",
-            }
-        }
+    # ── Helpers for Pydantic serialization ───────────
+
+    def set_extracted(self, content: ExtractedContent) -> None:
+        """Serialize an ExtractedContent Pydantic model into JSONB."""
+        self.extracted = content.model_dump(mode="json")
+
+    def get_extracted(self) -> Optional[ExtractedContent]:
+        """Deserialize the JSONB column back to an ExtractedContent model."""
+        if self.extracted is None:
+            return None
+        return ExtractedContent.model_validate(self.extracted)
